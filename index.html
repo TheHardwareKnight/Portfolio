@@ -193,19 +193,21 @@
     }
 
     .skills-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: 1px;
       border: 1px solid var(--border);
     }
 
     .skill-item {
-      padding: 1.5rem;
+      padding: 1.5rem 2rem;
       border-right: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
       font-family: 'Space Mono', monospace;
       font-size: 0.85rem;
       transition: background 0.2s;
+      flex: 1 1 180px;
+      text-align: center;
     }
     .skill-item:hover { background: var(--card); }
     .skill-item .skill-cat {
@@ -380,7 +382,7 @@
     <div class="contact-inner">
       <h2>Let's connect</h2>
       <div class="contact-links">
-        <a href="mailto:myleskerschner@gmail.com" class="btn accent">myleskerschner@gmail.com</a>
+        <a href="/cdn-cgi/l/email-protection#87eafeebe2f4ece2f5f4e4efe9e2f5c7e0eae6eeeba9e4e8ea" class="btn accent"><span class="__cf_email__" data-cfemail="523f2b3e372139372021313a3c372012353f333b3e7c313d3f">[email&#160;protected]</span></a>
         <a href="https://github.com/TheHardwareKnight" target="_blank" class="btn">GitHub</a>
       </div>
     </div>
@@ -391,7 +393,7 @@
     <span>myleskerschner.com</span>
   </footer>
 
-  <script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     const GITHUB_USERNAME = 'TheHardwareKnight';
 
     // Add any repo names here you want to hide
@@ -428,17 +430,4 @@
             </div>
             <h3>${formatName(repo.name)}</h3>
             <p>${repo.description || 'No description yet.'}</p>
-            <div class="project-arrow">View on GitHub →</div>
-          </a>
-        `).join('');
-
-      } catch (e) {
-        grid.innerHTML = `<div class="projects-loading">Couldn't load repos — check back soon.</div>`;
-      }
-    }
-
-    loadRepos();
-  </script>
-
-</body>
-</html>
+            <div class="project-ar
