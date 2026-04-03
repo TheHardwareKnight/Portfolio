@@ -28,7 +28,6 @@
       overflow-x: hidden;
     }
 
-    /* ── Noise overlay ── */
     body::before {
       content: '';
       position: fixed;
@@ -39,7 +38,6 @@
       opacity: 0.4;
     }
 
-    /* ── Nav ── */
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -72,7 +70,6 @@
     }
     .nav-links a:hover { color: var(--fg); }
 
-    /* ── Hero ── */
     #hero {
       min-height: 100vh;
       display: flex;
@@ -148,7 +145,6 @@
       letter-spacing: 0.15em;
     }
 
-    /* ── Sections ── */
     section {
       padding: 6rem 3rem;
       border-bottom: 1px solid var(--border);
@@ -182,7 +178,6 @@
       margin-bottom: 2rem;
     }
 
-    /* ── About ── */
     .about-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -197,7 +192,6 @@
       margin-bottom: 1rem;
     }
 
-    /* ── Skills ── */
     .skills-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -222,7 +216,6 @@
       margin-bottom: 0.5rem;
     }
 
-    /* ── Projects ── */
     .projects-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -249,7 +242,12 @@
       letter-spacing: 0.15em;
       text-transform: uppercase;
       margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+
+    .project-card .stars { color: var(--muted); }
 
     .project-card h3 {
       font-size: 1.2rem;
@@ -270,7 +268,25 @@
       color: var(--muted);
     }
 
-    /* ── Contact ── */
+    .projects-loading {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      padding: 3rem;
+      text-align: center;
+      grid-column: 1 / -1;
+    }
+
+    .projects-loading span {
+      display: inline-block;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
     .contact-inner {
       display: flex;
       flex-direction: column;
@@ -280,7 +296,6 @@
 
     .contact-links { display: flex; gap: 1rem; flex-wrap: wrap; }
 
-    /* ── Footer ── */
     footer {
       padding: 2rem 3rem;
       display: flex;
@@ -291,13 +306,11 @@
       color: var(--muted);
     }
 
-    /* ── Animations ── */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(20px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── Responsive ── */
     @media (max-width: 768px) {
       nav { padding: 1.2rem 1.5rem; }
       #hero { padding: 0 1.5rem 4rem; }
@@ -309,7 +322,6 @@
 </head>
 <body>
 
-  <!-- Nav -->
   <nav>
     <a class="nav-logo" href="#">MK</a>
     <ul class="nav-links">
@@ -320,7 +332,6 @@
     </ul>
   </nav>
 
-  <!-- Hero -->
   <section id="hero">
     <p class="hero-tag">Portfolio</p>
     <h1>Myles<br><span>Kerschner</span></h1>
@@ -332,13 +343,10 @@
     <span class="hero-number">myleskerschner.com</span>
   </section>
 
-  <!-- About -->
   <section id="about">
     <div class="section-label">01 — About</div>
     <div class="about-grid">
-      <div>
-        <h2>A bit about me</h2>
-      </div>
+      <div><h2>A bit about me</h2></div>
       <div class="about-text">
         <p>Add your bio here. Tell people who you are, what you're interested in, and what you're working on.</p>
         <p>This is a good place to mention your background, goals, or anything else you'd like people to know.</p>
@@ -346,65 +354,27 @@
     </div>
   </section>
 
-  <!-- Skills -->
   <section id="skills">
     <div class="section-label">02 — Skills</div>
     <h2>What I work with</h2>
     <div class="skills-grid">
-      <div class="skill-item">
-        <div class="skill-cat">Category</div>
-        Skill One
-      </div>
-      <div class="skill-item">
-        <div class="skill-cat">Category</div>
-        Skill Two
-      </div>
-      <div class="skill-item">
-        <div class="skill-cat">Category</div>
-        Skill Three
-      </div>
-      <div class="skill-item">
-        <div class="skill-cat">Category</div>
-        Skill Four
-      </div>
-      <div class="skill-item">
-        <div class="skill-cat">Category</div>
-        Skill Five
-      </div>
-      <div class="skill-item">
-        <div class="skill-cat">Category</div>
-        Skill Six
-      </div>
+      <div class="skill-item"><div class="skill-cat">Category</div>Skill One</div>
+      <div class="skill-item"><div class="skill-cat">Category</div>Skill Two</div>
+      <div class="skill-item"><div class="skill-cat">Category</div>Skill Three</div>
+      <div class="skill-item"><div class="skill-cat">Category</div>Skill Four</div>
+      <div class="skill-item"><div class="skill-cat">Category</div>Skill Five</div>
+      <div class="skill-item"><div class="skill-cat">Category</div>Skill Six</div>
     </div>
   </section>
 
-  <!-- Projects -->
   <section id="projects">
     <div class="section-label">03 — Projects</div>
     <h2>Things I've built</h2>
-    <div class="projects-grid">
-      <a href="#" class="project-card">
-        <div class="tag">Project Type</div>
-        <h3>Project One</h3>
-        <p>A short description of what this project does and what makes it interesting.</p>
-        <div class="project-arrow">View →</div>
-      </a>
-      <a href="#" class="project-card">
-        <div class="tag">Project Type</div>
-        <h3>Project Two</h3>
-        <p>A short description of what this project does and what makes it interesting.</p>
-        <div class="project-arrow">View →</div>
-      </a>
-      <a href="#" class="project-card">
-        <div class="tag">Project Type</div>
-        <h3>Project Three</h3>
-        <p>A short description of what this project does and what makes it interesting.</p>
-        <div class="project-arrow">View →</div>
-      </a>
+    <div class="projects-grid" id="projects-grid">
+      <div class="projects-loading">Fetching repos<span>...</span></div>
     </div>
   </section>
 
-  <!-- Contact -->
   <section id="contact">
     <div class="section-label">04 — Contact</div>
     <div class="contact-inner">
@@ -416,11 +386,59 @@
     </div>
   </section>
 
-  <!-- Footer -->
   <footer>
     <span>© 2026 Myles Kerschner</span>
     <span>myleskerschner.com</span>
   </footer>
+
+  <script>
+    const GITHUB_USERNAME = 'TheHardwareKnight';
+
+    // Add any repo names here you want to hide
+    const EXCLUDED_REPOS = [];
+
+    function formatName(name) {
+      return name
+        .replace(/-/g, ' ')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    async function loadRepos() {
+      const grid = document.getElementById('projects-grid');
+      try {
+        const res = await fetch(
+          `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=20`
+        );
+        if (!res.ok) throw new Error();
+
+        const repos = await res.json();
+        const filtered = repos.filter(r => !r.fork && !EXCLUDED_REPOS.includes(r.name));
+
+        if (filtered.length === 0) {
+          grid.innerHTML = `<div class="projects-loading">No public repos found.</div>`;
+          return;
+        }
+
+        grid.innerHTML = filtered.map(repo => `
+          <a href="${repo.html_url}" target="_blank" class="project-card">
+            <div class="tag">
+              <span>${repo.language || 'Code'}</span>
+              <span class="stars">★ ${repo.stargazers_count}</span>
+            </div>
+            <h3>${formatName(repo.name)}</h3>
+            <p>${repo.description || 'No description yet.'}</p>
+            <div class="project-arrow">View on GitHub →</div>
+          </a>
+        `).join('');
+
+      } catch (e) {
+        grid.innerHTML = `<div class="projects-loading">Couldn't load repos — check back soon.</div>`;
+      }
+    }
+
+    loadRepos();
+  </script>
 
 </body>
 </html>
