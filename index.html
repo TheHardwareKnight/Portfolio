@@ -350,8 +350,8 @@
     <div class="about-grid">
       <div><h2>A bit about me</h2></div>
       <div class="about-text">
-        <p>I’m interested in IoT devices, cybersecurity, and physical security. I like building and experimenting hands on with hardware and software.</p>
-        <p>I’m working on improving my skills in programming, networking, and system design through projects like custom terminals, servers, and automation.</p>
+        <p>I'm interested in IoT devices, cybersecurity, and physical security. I like building and experimenting hands on with hardware and software.</p>
+        <p>I'm working on improving my skills in programming, networking, and system design through projects like custom terminals, servers, and automation.</p>
       </div>
     </div>
   </section>
@@ -382,7 +382,7 @@
     <div class="contact-inner">
       <h2>Let's connect</h2>
       <div class="contact-links">
-        <a href="/cdn-cgi/l/email-protection#87eafeebe2f4ece2f5f4e4efe9e2f5c7e0eae6eeeba9e4e8ea" class="btn accent"><span class="__cf_email__" data-cfemail="523f2b3e372139372021313a3c372012353f333b3e7c313d3f">[email&#160;protected]</span></a>
+        <a href="mailto:myleskerschner@gmail.com" class="btn accent">myleskerschner@gmail.com</a>
         <a href="https://github.com/TheHardwareKnight" target="_blank" class="btn">GitHub</a>
       </div>
     </div>
@@ -393,8 +393,9 @@
     <span>myleskerschner.com</span>
   </footer>
 
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  <script>
     const GITHUB_USERNAME = 'TheHardwareKnight';
+    const GITHUB_TOKEN = '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';
 
     // Add any repo names here you want to hide
     const EXCLUDED_REPOS = [];
@@ -410,7 +411,13 @@
       const grid = document.getElementById('projects-grid');
       try {
         const res = await fetch(
-          `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=20`
+          `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=20`,
+          {
+            headers: {
+              'Authorization': `Bearer ${GITHUB_TOKEN}`,
+              'User-Agent': 'myleskerschner-portfolio'
+            }
+          }
         );
         if (!res.ok) throw new Error();
 
@@ -430,4 +437,17 @@
             </div>
             <h3>${formatName(repo.name)}</h3>
             <p>${repo.description || 'No description yet.'}</p>
-            <div class="project-ar
+            <div class="project-arrow">View on GitHub →</div>
+          </a>
+        `).join('');
+
+      } catch (e) {
+        grid.innerHTML = `<div class="projects-loading">Couldn't load repos — check back soon.</div>`;
+      }
+    }
+
+    loadRepos();
+  </script>
+
+</body>
+</html>
