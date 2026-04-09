@@ -148,25 +148,62 @@
     #content-screen {
       display: none;
       flex: 1;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      margin-top: 4rem;
+      justify-content: center;
+      padding: 2rem;
+      margin-top: 5rem;
     }
 
-    .content-inner {
+    .stream-label {
       font-family: 'Space Mono', monospace;
-      font-size: 0.85rem;
-      color: var(--muted);
-      text-align: center;
-    }
-
-    .content-inner span {
-      display: block;
-      font-size: 0.65rem;
+      font-size: 0.7rem;
       color: var(--accent);
       letter-spacing: 0.2em;
       text-transform: uppercase;
       margin-bottom: 1rem;
+      align-self: flex-start;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .stream-wrapper {
+      width: 100%;
+      max-width: 900px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      position: relative;
+    }
+
+    .stream-wrapper img {
+      width: 100%;
+      display: block;
+    }
+
+    .stream-status {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 1rem;
+      align-self: flex-start;
+      max-width: 900px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
     }
   </style>
 </head>
@@ -190,9 +227,13 @@
   </div>
 
   <div id="content-screen">
-    <div class="content-inner">
-      <span>Access Granted</span>
-      Content coming soon.
+    <div class="stream-label">Live Feed</div>
+    <div class="stream-wrapper">
+      <img id="stream-img" src="" alt="Camera feed" />
+    </div>
+    <div class="stream-status">
+      <div class="status-dot"></div>
+      Live — cam.myleskerschner.com
     </div>
   </div>
 
@@ -214,8 +255,11 @@
 
       if (hash === CORRECT_HASH) {
         document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('content-screen').style.display = 'flex';
+        const content = document.getElementById('content-screen');
+        content.style.display = 'flex';
         error.style.display = 'none';
+        // Load stream only after login so it's not accessible without password
+        document.getElementById('stream-img').src = 'https://cam.myleskerschner.com/stream';
       } else {
         error.style.display = 'block';
         document.getElementById('password').value = '';
