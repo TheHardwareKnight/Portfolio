@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Myles Kerschner — Cam</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --fg: #f0ede6;
+      --accent: #e8ff47;
+      --muted: #555;
+      --card: #141414;
+      --border: #222;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.4;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 3rem;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-logo {
+      font-size: 1rem;
+      font-family: 'Space Mono', monospace;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-decoration: none;
+    }
+
+    #login-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      margin-top: 4rem;
+    }
+
+    .login-box {
+      border: 1px solid var(--border);
+      padding: 3rem;
+      width: 100%;
+      max-width: 400px;
+      background: var(--card);
+    }
+
+    .login-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+
+    .login-box h2 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 2rem;
+      letter-spacing: -0.02em;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .input-group input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.9rem;
+      padding: 0.75rem 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    .input-group input:focus { border-color: var(--accent); }
+
+    .btn {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      padding: 0.75rem 1.5rem;
+      border: 1px solid var(--border);
+      color: var(--fg);
+      transition: all 0.2s;
+      cursor: pointer;
+      background: transparent;
+      width: 100%;
+    }
+    .btn:hover { background: var(--fg); color: var(--bg); }
+    .btn.accent { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .btn.accent:hover { background: transparent; color: var(--accent); }
+
+    .error-msg {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: #ff4747;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    #content-screen {
+      display: none;
+      flex: 1;
+      justify-content: center;
+      align-items: center;
+      margin-top: 4rem;
+    }
+
+    .content-inner {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .content-inner span {
+      display: block;
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="/">MK</a>
+  </nav>
+
+  <div id="login-screen">
+    <div class="login-box">
+      <div class="login-label">Restricted Access</div>
+      <h2>Enter Password</h2>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" autocomplete="off" />
+      </div>
+      <button class="btn accent" onclick="checkPassword()">Unlock</button>
+      <p class="error-msg" id="error-msg">Incorrect password.</p>
+    </div>
+  </div>
+
+  <div id="content-screen">
+    <div class="content-inner">
+      <span>Access Granted</span>
+      Content coming soon.
+    </div>
+  </div>
+
+  <script>
+    const CORRECT_HASH = 'eb8c7c836d21b0b2c39beffb1a9886ec5cef8ee7b1eea1ca0c6dfd59ff8096f5';
+
+    async function hashInput(input) {
+      const clean = input.replace(/[^\x20-\x7E]/g, '').trim();
+      const encoded = new TextEncoder().encode(clean);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function checkPassword() {
+      const input = document.getElementById('password').value;
+      const error = document.getElementById('error-msg');
+      const hash = await hashInput(input);
+
+      if (hash === CORRECT_HASH) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('content-screen').style.display = 'flex';
+        error.style.display = 'none';
+      } else {
+        error.style.display = 'block';
+        document.getElementById('password').value = '';
+      }
+    }
+
+    document.getElementById('password').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') checkPassword();
+    });
+  </script>
+
+</body>
+</html>
