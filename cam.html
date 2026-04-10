@@ -172,7 +172,6 @@
       max-width: 900px;
       border: 1px solid var(--border);
       background: var(--card);
-      position: relative;
     }
 
     .stream-wrapper img {
@@ -239,6 +238,7 @@
 
   <script>
     const CORRECT_HASH = 'eb8c7c836d21b0b2c39beffb1a9886ec5cef8ee7b1eea1ca0c6dfd59ff8096f5';
+    const STREAM_TOKEN = 'mk_stream_a7x93k';
 
     async function hashInput(input) {
       const clean = input.replace(/[^\x20-\x7E]/g, '').trim();
@@ -258,8 +258,9 @@
         const content = document.getElementById('content-screen');
         content.style.display = 'flex';
         error.style.display = 'none';
-        // Load stream only after login so it's not accessible without password
-        document.getElementById('stream-img').src = 'https://cam.myleskerschner.com/stream';
+        // Only load stream after successful login, with token
+        document.getElementById('stream-img').src =
+          `https://cam.myleskerschner.com/stream?token=${STREAM_TOKEN}`;
       } else {
         error.style.display = 'block';
         document.getElementById('password').value = '';
