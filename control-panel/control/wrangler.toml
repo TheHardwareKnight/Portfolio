@@ -1,0 +1,11 @@
+name = "control-panel"
+main = "index.js"
+compatibility_date = "2026-04-04"
+
+routes = [
+  { pattern = "control.myleskerschner.com/*", zone_name = "myleskerschner.com" }
+]
+
+[[kv_namespaces]]
+binding = "CONTROL_KV"
+id = "YOUR_NAMESPACE_ID_HERE"
