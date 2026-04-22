@@ -11,31 +11,28 @@
     :root {
       --bg: #0a0a0a; --fg: #f0ede6; --accent: #e8ff47;
       --muted: #555; --card: #141414; --border: #222;
-      --danger: #ff4747; --success: #47ff8a;
+      --danger: #ff4747; --success: #47ff8a; --warn: #ffaa47;
     }
-    html { scroll-behavior: smooth; }
     body { background: var(--bg); color: var(--fg); font-family: 'Syne', sans-serif; min-height: 100vh; overflow-x: hidden; }
-    body::before {
-      content: ''; position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none; z-index: 999; opacity: 0.4;
-    }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 999; opacity: 0.4; }
 
     /* NAV */
     nav { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 2.5rem; z-index: 100; border-bottom: 1px solid var(--border); background: rgba(10,10,10,0.9); backdrop-filter: blur(12px); }
     .nav-logo { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--accent); letter-spacing: 0.1em; text-decoration: none; }
-    .nav-right { display: flex; align-items: center; gap: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; }
     #nav-user { color: var(--muted); }
-    #btn-logout { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.8rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s; }
+    #nav-role { color: var(--accent); font-size: 0.65rem; letter-spacing: 0.1em; border: 1px solid #2a2a2a; padding: 0.2rem 0.5rem; }
+    .nav-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.8rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s; }
+    .nav-btn:hover { border-color: var(--fg); color: var(--fg); }
     #btn-logout:hover { border-color: var(--danger); color: var(--danger); }
 
     /* PAGES */
     .page { display: none; }
     .page.active { display: block; }
-
-    /* LOGIN */
     #page-login { display: none; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; }
     #page-login.active { display: flex; }
+
+    /* LOGIN */
     .login-box { width: 100%; max-width: 380px; border: 1px solid var(--border); background: var(--card); padding: 2.5rem; animation: fadeUp 0.4s ease forwards; }
     .login-box h1 { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--accent); letter-spacing: 0.2em; margin-bottom: 0.5rem; }
     .login-box p { font-size: 0.8rem; color: var(--muted); margin-bottom: 2rem; font-family: 'Space Mono', monospace; }
@@ -48,25 +45,24 @@
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
     .login-error { color: var(--danger); font-family: 'Space Mono', monospace; font-size: 0.75rem; margin-top: 1rem; min-height: 1rem; }
 
-    /* DASHBOARD */
-    #page-dashboard { padding-top: 5rem; min-height: 100vh; }
-    #page-dashboard.active { display: block; }
+    /* SHARED LAYOUT */
+    .dash-page { padding-top: 4.5rem; min-height: 100vh; }
     .dash-header { padding: 2rem 2.5rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
     .dash-header h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
     .dash-header h2 span { color: var(--accent); }
     .dash-subtitle { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
+    .page-body { padding: 1.5rem 2.5rem; }
+    .section-label { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; }
 
     /* DEVICES */
-    #page-devices { display: none; padding: 1.5rem 2.5rem; }
-    #page-devices.active { display: block; }
-    .section-label { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; }
-    .device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .device-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
     .device-card { border: 1px solid var(--border); background: var(--card); padding: 1.5rem; cursor: pointer; transition: border-color 0.2s, transform 0.15s; position: relative; overflow: hidden; }
     .device-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 0.25s ease; }
     .device-card:hover { border-color: #444; transform: translateY(-2px); }
     .device-card:hover::before { transform: scaleX(1); }
     .device-card.offline { opacity: 0.45; }
-    .device-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; }
+    .device-card.hidden-device { border-style: dashed; border-color: #2a2a2a; }
+    .device-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
     .device-os { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-bottom: 1rem; }
     .device-stats { display: flex; gap: 1rem; }
     .stat { flex: 1; }
@@ -74,27 +70,27 @@
     .stat-value { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--accent); margin-top: 0.2rem; }
     .device-status { position: absolute; top: 1rem; right: 1rem; width: 8px; height: 8px; border-radius: 50%; }
     .device-status.offline { background: var(--danger); }
-    .device-status.online { background: var(--success); animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(71,255,138,0.4); } 50% { opacity: 0.8; box-shadow: 0 0 0 4px rgba(71,255,138,0); } }
+    .device-status.online { background: var(--success); animation: blink 2s infinite; }
+    .device-badge { position: absolute; bottom: 0.75rem; right: 1rem; font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; }
+    .device-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    .dev-action-btn { flex: 1; background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; letter-spacing: 0.06em; transition: all 0.15s; text-align: center; }
+    .dev-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .dev-action-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
 
     /* PROCESSES */
-    #page-processes { display: none; padding: 1.5rem 2.5rem; }
-    #page-processes.active { display: block; }
     .proc-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
     .btn-back { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 0.9rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s; }
     .btn-back:hover { border-color: var(--fg); color: var(--fg); }
     .proc-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
     .proc-title span { color: var(--accent); }
-    .btn-screen { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 0.9rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s; margin-left: auto; }
-    .btn-screen:hover { border-color: var(--accent); color: var(--accent); }
-    .proc-toolbar { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
+    .proc-toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
     .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 400px; }
     .search-wrap input { width: 100%; background: var(--card); border: 1px solid var(--border); color: var(--fg); padding: 0.6rem 1rem 0.6rem 2.2rem; font-family: 'Space Mono', monospace; font-size: 0.8rem; outline: none; transition: border-color 0.2s; }
     .search-wrap input:focus { border-color: var(--accent); }
     .search-wrap::before { content: '⌕'; position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 1rem; pointer-events: none; }
     .proc-count { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
-    .refresh-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 0.9rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s; white-space: nowrap; }
-    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .toolbar-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 0.9rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s; white-space: nowrap; }
+    .toolbar-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     /* TABLE */
     .proc-table-wrap { border: 1px solid var(--border); overflow: hidden; }
@@ -109,11 +105,38 @@
     .proc-table td.cpu { color: var(--accent); }
     .proc-table td.cpu.high { color: var(--danger); }
     .proc-table td.mem { color: #7eb8ff; }
-    .category-row td { padding: 0.4rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; background: #0f0f0f; border-bottom: 1px solid var(--border); }
-    .kill-btn { background: none; border: 1px solid #2a2a2a; color: var(--muted); padding: 0.25rem 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; letter-spacing: 0.06em; transition: all 0.15s; }
+    .category-row td { padding: 0.5rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; background: #0f0f0f; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+    .category-row:hover td { background: #131313; color: var(--fg); }
+    .kill-btn { background: none; border: 1px solid #2a2a2a; color: var(--muted); padding: 0.25rem 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; transition: all 0.15s; }
     .kill-btn:hover { border-color: var(--danger); color: var(--danger); background: rgba(255,71,71,0.05); }
 
-    /* KILL MODAL */
+    /* ADMIN PANEL */
+    .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 800px) { .admin-grid { grid-template-columns: 1fr; } }
+    .admin-card { border: 1px solid var(--border); background: var(--card); padding: 1.5rem; }
+    .admin-card h3 { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1.25rem; }
+    .user-row { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid #1a1a1a; gap: 0.5rem; }
+    .user-row:last-child { border-bottom: none; }
+    .user-info { font-family: 'Space Mono', monospace; font-size: 0.8rem; }
+    .user-info .role { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
+    .user-locked { color: var(--danger); font-size: 0.65rem; font-family: 'Space Mono', monospace; }
+    .lock-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0.7rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .lock-btn:hover { border-color: var(--danger); color: var(--danger); }
+    .lock-btn.unlock:hover { border-color: var(--success); color: var(--success); }
+
+    /* LOGS */
+    .log-filters { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .filter-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.8rem; font-family: 'Space Mono', monospace; font-size: 0.68rem; cursor: pointer; transition: all 0.15s; letter-spacing: 0.08em; }
+    .filter-btn.active { border-color: var(--accent); color: var(--accent); }
+    .log-table { width: 100%; border-collapse: collapse; font-family: 'Space Mono', monospace; font-size: 0.75rem; }
+    .log-table th { text-align: left; padding: 0.5rem 0.75rem; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--muted); border-bottom: 1px solid var(--border); text-transform: uppercase; }
+    .log-table td { padding: 0.45rem 0.75rem; border-bottom: 1px solid #161616; color: var(--fg); }
+    .log-table tr.fail td { color: var(--danger); }
+    .log-table tr.fail td:first-child { border-left: 2px solid var(--danger); }
+    .log-table td.event { color: var(--muted); }
+    .log-table td.detail { color: #444; font-size: 0.7rem; }
+
+    /* MODALS */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
     .modal { background: var(--card); border: 1px solid var(--border); padding: 2rem; width: 100%; max-width: 360px; transform: translateY(10px); transition: transform 0.2s; }
@@ -124,34 +147,26 @@
     .modal-btns { display: flex; gap: 0.75rem; }
     .btn-cancel { flex: 1; background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
     .btn-cancel:hover { border-color: var(--fg); color: var(--fg); }
-    .btn-kill { flex: 1; background: var(--danger); border: none; color: #fff; padding: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; cursor: pointer; letter-spacing: 0.08em; transition: background 0.2s; }
-    .btn-kill:hover { background: #e03333; }
+    .btn-confirm-danger { flex: 1; background: var(--danger); border: none; color: #fff; padding: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; cursor: pointer; letter-spacing: 0.08em; transition: background 0.2s; }
+    .btn-confirm-danger:hover { background: #e03333; }
 
-    /* SCREEN MODAL */
-    #screen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 500; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
+    /* SCREEN */
+    #screen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 500; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
     #screen-modal.open { display: flex; }
     .screen-header { width: 100%; max-width: 1300px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--muted); }
-    .screen-header span { color: var(--accent); }
-    .btn-close-screen { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.8rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; transition: all 0.2s; }
-    .btn-close-screen:hover { border-color: var(--danger); color: var(--danger); }
-    #screen-img { max-width: 100%; max-height: calc(100vh - 80px); border: 1px solid var(--border); object-fit: contain; }
+    #screen-img { max-width: 100%; max-height: calc(100vh - 80px); border: 1px solid var(--border); object-fit: contain; display: none; }
     #screen-placeholder { color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.8rem; }
 
-    /* TOAST */
+    /* MISC */
     .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 0.8rem 1.2rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; z-index: 600; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.error { border-left-color: var(--danger); }
-
     .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.8rem; }
     .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 0.5rem; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-
-    @media (max-width: 600px) {
-      nav { padding: 1rem 1.2rem; }
-      .dash-header, #page-devices, #page-processes { padding: 1rem 1.2rem; }
-      .proc-table td.user, .proc-table th:nth-child(5) { display: none; }
-    }
+    @keyframes blink { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(71,255,138,0.4);}50%{opacity:.8;box-shadow:0 0 0 4px rgba(71,255,138,0);} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
+    @media (max-width:600px) { nav{padding:1rem 1.2rem;} .dash-header,.page-body{padding:1rem 1.2rem;} .proc-table td.user,.proc-table th:nth-child(5){display:none;} .admin-grid{grid-template-columns:1fr;} }
   </style>
 </head>
 <body>
@@ -160,7 +175,9 @@
   <a href="/" class="nav-logo">MK.DEV</a>
   <div class="nav-right">
     <span id="nav-user"></span>
-    <button id="btn-logout">LOGOUT</button>
+    <span id="nav-role"></span>
+    <button class="nav-btn" id="btn-admin" style="display:none">⚙ ADMIN</button>
+    <button class="nav-btn" id="btn-logout">LOGOUT</button>
   </div>
 </nav>
 
@@ -169,63 +186,78 @@
   <div class="login-box">
     <h1>// CONTROL</h1>
     <p>myleskerschner.com/control</p>
-    <div class="field">
-      <label>Username</label>
-      <input type="text" id="login-user" autocomplete="username" placeholder="username"/>
-    </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="login-pass" autocomplete="current-password" placeholder="••••••••"/>
-    </div>
+    <div class="field"><label>Username</label><input type="text" id="login-user" autocomplete="username" placeholder="username"/></div>
+    <div class="field"><label>Password</label><input type="password" id="login-pass" autocomplete="current-password" placeholder="••••••••"/></div>
     <button class="btn-primary" id="btn-login">ENTER</button>
     <div class="login-error" id="login-error"></div>
   </div>
 </div>
 
 <!-- DEVICES -->
-<div id="page-devices" class="page">
+<div id="page-devices" class="page dash-page">
   <div class="dash-header">
-    <div>
-      <h2>// <span>DEVICES</span></h2>
-      <div class="dash-subtitle" id="devices-subtitle">SELECT A DEVICE TO VIEW PROCESSES</div>
-    </div>
+    <div><h2>// <span>DEVICES</span></h2><div class="dash-subtitle" id="devices-subtitle">SELECT A DEVICE</div></div>
   </div>
-  <div style="padding: 1.5rem 2.5rem">
+  <div class="page-body">
     <div class="section-label">CONNECTED DEVICES</div>
-    <div class="device-grid" id="device-grid">
-      <div class="empty-state"><span class="spinner"></span>Loading devices...</div>
-    </div>
+    <div class="device-grid" id="device-grid"><div class="empty-state"><span class="spinner"></span>Loading...</div></div>
   </div>
 </div>
 
 <!-- PROCESSES -->
-<div id="page-processes" class="page">
-  <div class="proc-header">
-    <button class="btn-back" id="btn-back">← DEVICES</button>
-    <div class="proc-title">// <span id="proc-device-name">DEVICE</span></div>
-  </div>
-  <div class="proc-toolbar">
-    <div class="search-wrap">
-      <input type="text" id="proc-search" placeholder="Search processes..."/>
+<div id="page-processes" class="page dash-page">
+  <div class="page-body">
+    <div class="proc-header">
+      <button class="btn-back" id="btn-back">← DEVICES</button>
+      <div class="proc-title">// <span id="proc-device-name">DEVICE</span></div>
     </div>
-    <span class="proc-count" id="proc-count"></span>
-    <button class="refresh-btn" id="btn-refresh">↻ REFRESH</button>
-    <button class="refresh-btn" id="btn-screen" style="border-color:#333;color:var(--muted)">⬛ SCREEN</button>
-  </div>
-  <div class="proc-table-wrap">
-    <table class="proc-table">
-      <thead>
-        <tr>
+    <div class="proc-toolbar">
+      <div class="search-wrap"><input type="text" id="proc-search" placeholder="Search processes..."/></div>
+      <span class="proc-count" id="proc-count"></span>
+      <button class="toolbar-btn" id="btn-refresh">↻ REFRESH</button>
+      <button class="toolbar-btn" id="btn-screen" style="display:none">⬛ SCREEN</button>
+    </div>
+    <div class="proc-table-wrap">
+      <table class="proc-table">
+        <thead><tr>
           <th data-col="name">PROCESS</th>
           <th data-col="pid">PID</th>
           <th data-col="cpu">CPU %</th>
           <th data-col="mem_mb">MEM MB</th>
           <th data-col="user">USER</th>
-          <th>ACTION</th>
-        </tr>
-      </thead>
-      <tbody id="proc-tbody"></tbody>
-    </table>
+          <th id="action-col">ACTION</th>
+        </tr></thead>
+        <tbody id="proc-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="page-admin" class="page dash-page">
+  <div class="dash-header">
+    <div><h2>// <span>ADMIN</span></h2><div class="dash-subtitle">SYSTEM MANAGEMENT</div></div>
+  </div>
+  <div class="page-body">
+    <div class="log-filters" style="margin-bottom:1.5rem">
+      <button class="filter-btn active" data-days="1">TODAY</button>
+      <button class="filter-btn" data-days="3">3 DAYS</button>
+      <button class="filter-btn" data-days="7">7 DAYS</button>
+    </div>
+    <div class="admin-grid">
+      <div class="admin-card" style="grid-column: 1 / -1">
+        <h3>Login Logs</h3>
+        <div id="logs-wrap"><div class="empty-state"><span class="spinner"></span>Loading logs...</div></div>
+      </div>
+      <div class="admin-card">
+        <h3>User Accounts</h3>
+        <div id="users-wrap"><div class="empty-state"><span class="spinner"></span>Loading...</div></div>
+      </div>
+      <div class="admin-card">
+        <h3>Device Visibility</h3>
+        <div id="admin-devices-wrap"><div class="empty-state"><span class="spinner"></span>Loading...</div></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -233,10 +265,10 @@
 <div class="modal-overlay" id="kill-modal">
   <div class="modal">
     <h3>⚠ END TASK</h3>
-    <p>Kill <strong id="modal-proc-name"></strong> (PID <strong id="modal-proc-pid"></strong>) on <strong id="modal-device-name"></strong>?<br><br>Unsaved work in that process will be lost.</p>
+    <p>Kill <strong id="modal-proc-name"></strong> (PID <strong id="modal-proc-pid"></strong>) on <strong id="modal-device-name"></strong>?<br><br>Unsaved work will be lost.</p>
     <div class="modal-btns">
       <button class="btn-cancel" id="modal-cancel">CANCEL</button>
-      <button class="btn-kill" id="modal-confirm">END TASK</button>
+      <button class="btn-confirm-danger" id="modal-confirm">END TASK</button>
     </div>
   </div>
 </div>
@@ -244,30 +276,32 @@
 <!-- SCREEN MODAL -->
 <div id="screen-modal">
   <div class="screen-header">
-    <span id="screen-title">SCREEN — <span id="screen-device-label"></span></span>
+    <span>SCREEN — <span id="screen-device-label"></span></span>
     <div style="display:flex;gap:0.75rem;align-items:center">
       <span id="screen-ts" style="color:var(--muted);font-size:0.7rem"></span>
-      <button class="btn-close-screen" id="btn-close-screen">✕ CLOSE</button>
+      <button class="toolbar-btn" id="btn-close-screen">✕ CLOSE</button>
     </div>
   </div>
-  <img id="screen-img" src="" alt="" style="display:none"/>
-  <div id="screen-placeholder">No screenshot available yet — make sure agent has Pillow installed.</div>
+  <img id="screen-img" src="" alt=""/>
+  <div id="screen-placeholder">No screenshot yet — ensure Pillow is installed on the agent.</div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
   const API = 'https://controlapi.myleskerschner.com';
 
   let authToken     = sessionStorage.getItem('ctrl_token') || null;
+  let userRole      = sessionStorage.getItem('ctrl_role') || null;
+  let permissions   = JSON.parse(sessionStorage.getItem('ctrl_perms') || '[]');
   let currentDevice = null;
   let allProcesses  = [];
-  let sortCol       = 'cpu';
-  let sortAsc       = false;
-  let pollTimer     = null;
-  let screenTimer   = null;
-  let pendingKill   = null;
+  let sortCol = 'cpu', sortAsc = false;
+  let pollTimer = null, screenTimer = null, pendingKill = null;
+  let logDays = 1;
+  const collapsed = { focused: false, user: false, background: false };
+
+  const can = p => permissions.includes(p);
 
   // ── UTILS ────────────────────────────────────────────────────
   function showPage(id) {
@@ -287,7 +321,7 @@
   async function api(path, opts = {}) {
     const res = await fetch(API + path, {
       ...opts,
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken, ...(opts.headers || {}) }
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken, ...(opts.headers||{}) }
     });
     if (res.status === 401) { doLogout(); return null; }
     return res;
@@ -300,32 +334,33 @@
     const btn  = document.getElementById('btn-login');
     const err  = document.getElementById('login-error');
     if (!user || !pass) { err.textContent = 'Enter username and password.'; return; }
-
     btn.disabled = true; btn.textContent = 'AUTHENTICATING...'; err.textContent = '';
-
     try {
-      const res  = await fetch(API + '/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: user, password: pass }) });
+      const res  = await fetch(API + '/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:user,password:pass}) });
       const data = await res.json();
       if (res.ok && data.token) {
-        authToken = data.token;
+        authToken   = data.token;
+        userRole    = data.role;
+        permissions = data.permissions || [];
         sessionStorage.setItem('ctrl_token', authToken);
+        sessionStorage.setItem('ctrl_role',  userRole);
+        sessionStorage.setItem('ctrl_perms', JSON.stringify(permissions));
         document.getElementById('nav-user').textContent = user.toUpperCase();
+        document.getElementById('nav-role').textContent = userRole.toUpperCase();
+        document.getElementById('btn-admin').style.display = can('manage_users') ? 'block' : 'none';
         showPage('page-devices');
         loadDevices();
       } else {
         err.textContent = data.error || 'Invalid credentials.';
       }
-    } catch (e) {
-      err.textContent = 'Cannot reach server. Is the Pi online?';
-    }
+    } catch(e) { err.textContent = 'Cannot reach server. Is the Pi online?'; }
     btn.disabled = false; btn.textContent = 'ENTER';
   }
 
   function doLogout() {
-    authToken = null;
-    sessionStorage.removeItem('ctrl_token');
-    clearInterval(pollTimer);
-    stopScreenPolling();
+    authToken = userRole = null; permissions = [];
+    sessionStorage.clear();
+    clearInterval(pollTimer); stopScreenPolling();
     showPage('page-login');
     document.getElementById('login-pass').value = '';
   }
@@ -337,19 +372,24 @@
       const res     = await api('/devices');
       if (!res) return;
       const devices = await res.json();
-
       if (!devices.length) { grid.innerHTML = '<div class="empty-state">No devices reporting in yet.</div>'; return; }
 
+      const isAdmin = can('manage_devices');
       grid.innerHTML = devices.map(d => `
-        <div class="device-card ${d.online ? '' : 'offline'}" data-id="${d.id}">
-          <div class="device-status ${d.online ? 'online' : 'offline'}"></div>
+        <div class="device-card ${d.online?'':'offline'} ${d.hidden?'hidden-device':''}" data-id="${d.id}">
+          <div class="device-status ${d.online?'online':'offline'}"></div>
           <div class="device-name">${d.name}</div>
-          <div class="device-os">${d.os} · ${d.online ? 'ONLINE' : 'LAST SEEN ' + d.last_seen}</div>
+          <div class="device-os">${d.os} · ${d.online?'ONLINE':'LAST SEEN '+d.last_seen}</div>
           <div class="device-stats">
-            <div class="stat"><div class="stat-label">CPU</div><div class="stat-value">${d.cpu_total ?? '—'}%</div></div>
-            <div class="stat"><div class="stat-label">MEM</div><div class="stat-value">${d.mem_used_gb ?? '—'} GB</div></div>
-            <div class="stat"><div class="stat-label">PROCS</div><div class="stat-value">${d.process_count ?? '—'}</div></div>
+            <div class="stat"><div class="stat-label">CPU</div><div class="stat-value">${d.cpu_total??'—'}%</div></div>
+            <div class="stat"><div class="stat-label">MEM</div><div class="stat-value">${d.mem_used_gb??'—'} GB</div></div>
+            <div class="stat"><div class="stat-label">PROCS</div><div class="stat-value">${d.process_count??'—'}</div></div>
           </div>
+          ${isAdmin ? `
+          <div class="device-actions" onclick="event.stopPropagation()">
+            <button class="dev-action-btn ${d.hidden?'':'danger'}" onclick="toggleHideDevice('${d.id}',${!d.hidden})">${d.hidden?'SHOW':'HIDE'}</button>
+          </div>` : ''}
+          ${d.hidden ? '<div class="device-badge">HIDDEN</div>' : ''}
         </div>
       `).join('');
 
@@ -361,16 +401,23 @@
       });
 
       document.getElementById('devices-subtitle').textContent =
-        devices.filter(d => d.online).length + ' OF ' + devices.length + ' ONLINE';
-    } catch (e) {
-      grid.innerHTML = '<div class="empty-state">Failed to load devices.</div>';
-    }
+        devices.filter(d=>d.online).length + ' OF ' + devices.length + ' ONLINE';
+    } catch(e) { grid.innerHTML = '<div class="empty-state">Failed to load devices.</div>'; }
+  }
+
+  async function toggleHideDevice(id, hide) {
+    const res = await api('/devices/' + id + '/hide', { method:'POST', body: JSON.stringify({hidden:hide}) });
+    if (res && res.ok) { toast(hide ? 'Device hidden' : 'Device visible'); loadDevices(); }
+    else toast('Failed to update device', true);
   }
 
   // ── PROCESSES ────────────────────────────────────────────────
   function openDevice(dev) {
     currentDevice = dev;
     document.getElementById('proc-device-name').textContent = dev.name.toUpperCase();
+    // Show/hide features based on permissions
+    document.getElementById('btn-screen').style.display   = can('view_screen') ? 'block' : 'none';
+    document.getElementById('action-col').style.display   = can('end_tasks')   ? '' : 'none';
     showPage('page-processes');
     loadProcesses();
     clearInterval(pollTimer);
@@ -384,55 +431,48 @@
       if (!res) return;
       allProcesses = await res.json();
       renderProcesses();
-    } catch (e) { toast('Failed to fetch processes', true); }
-  }
-
-  const collapsed = { focused: false, user: false, background: false };
-
-  function makeRows(arr, category) {
-    if (collapsed[category]) return '';
-    return arr.map(p => `
-      <tr data-cat="${category}">
-        <td title="${p.name}">${p.name}</td>
-        <td class="pid">${p.pid}</td>
-        <td class="cpu ${p.cpu > 20 ? 'high' : ''}">${p.cpu.toFixed(1)}%</td>
-        <td class="mem">${p.mem_mb.toFixed(0)}</td>
-        <td class="user">${p.user || '—'}</td>
-        <td><button class="kill-btn" data-pid="${p.pid}" data-name="${p.name}">END</button></td>
-      </tr>
-    `).join('');
-  }
-
-  function makeSeparator(label, count, category) {
-    const arrow = collapsed[category] ? '▶' : '▼';
-    const collapsedNote = collapsed[category] ? '<span style="color:#444;margin-left:0.5rem;font-size:0.6rem">COLLAPSED</span>' : '';
-    return `<tr class="category-row" data-toggle="${category}" style="cursor:pointer">
-      <td colspan="6"><span style="color:var(--muted);margin-right:0.5rem;font-size:0.6rem">${arrow}</span>${label} <span style="color:#333">(${count})</span>${collapsedNote}</td>
-    </tr>`;
+    } catch(e) { toast('Failed to fetch processes', true); }
   }
 
   function sortGroup(arr) {
-    return arr.sort((a, b) => {
-      let av = a[sortCol] ?? '', bv = b[sortCol] ?? '';
-      if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
-      return sortAsc ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+    return [...arr].sort((a,b) => {
+      let av = a[sortCol]??'', bv = b[sortCol]??'';
+      if (typeof av === 'string') { av=av.toLowerCase(); bv=bv.toLowerCase(); }
+      return sortAsc ? (av>bv?1:-1) : (av<bv?1:-1);
     });
   }
 
+  function makeSeparator(label, count, cat) {
+    const arrow = collapsed[cat] ? '▶' : '▼';
+    return `<tr class="category-row" data-toggle="${cat}">
+      <td colspan="6"><span style="margin-right:0.5rem;font-size:0.6rem">${arrow}</span>${label} <span style="color:#333">(${count})</span>${collapsed[cat]?'<span style="color:#333;margin-left:0.75rem;font-size:0.6rem">COLLAPSED</span>':''}</td>
+    </tr>`;
+  }
+
+  function makeRows(arr, cat) {
+    if (collapsed[cat]) return '';
+    const showKill = can('end_tasks');
+    return arr.map(p => `
+      <tr>
+        <td title="${p.name}">${p.name}</td>
+        <td class="pid">${p.pid}</td>
+        <td class="cpu ${p.cpu>20?'high':''}">${p.cpu.toFixed(1)}%</td>
+        <td class="mem">${p.mem_mb.toFixed(0)}</td>
+        <td class="user">${p.user||'—'}</td>
+        ${showKill ? `<td><button class="kill-btn" data-pid="${p.pid}" data-name="${p.name}">END</button></td>` : '<td style="display:none"></td>'}
+      </tr>`).join('');
+  }
+
   function renderProcesses() {
-    const query = document.getElementById('proc-search').value.toLowerCase();
+    const q        = document.getElementById('proc-search').value.toLowerCase();
     const filtered = allProcesses.filter(p =>
-      p.name.toLowerCase().includes(query) ||
-      String(p.pid).includes(query) ||
-      (p.user || '').toLowerCase().includes(query)
+      p.name.toLowerCase().includes(q) || String(p.pid).includes(q) || (p.user||'').toLowerCase().includes(q)
     );
+    const focused    = sortGroup(filtered.filter(p=>p.category==='focused'));
+    const user       = sortGroup(filtered.filter(p=>p.category==='user'));
+    const background = sortGroup(filtered.filter(p=>p.category==='background'));
 
-    const focused    = sortGroup(filtered.filter(p => p.category === 'focused'));
-    const user       = sortGroup(filtered.filter(p => p.category === 'user'));
-    const background = sortGroup(filtered.filter(p => p.category === 'background'));
-
-    document.getElementById('proc-count').textContent =
-      filtered.length + ' / ' + allProcesses.length + ' PROCESSES';
+    document.getElementById('proc-count').textContent = filtered.length + ' / ' + allProcesses.length + ' PROCESSES';
 
     const tbody = document.getElementById('proc-tbody');
     if (!filtered.length) {
@@ -446,23 +486,20 @@
     if (background.length) html += makeSeparator('◌ Background', background.length, 'background') + makeRows(background, 'background');
 
     tbody.innerHTML = html;
-    tbody.querySelectorAll('.kill-btn').forEach(btn => {
-      btn.addEventListener('click', () => showKillModal(btn.dataset.pid, btn.dataset.name));
-    });
-    tbody.querySelectorAll('.category-row[data-toggle]').forEach(row => {
-      row.addEventListener('click', () => {
-        collapsed[row.dataset.toggle] = !collapsed[row.dataset.toggle];
-        renderProcesses();
-      });
-    });
-    document.querySelectorAll('.proc-table thead th[data-col]').forEach(th => {
-      th.classList.toggle('sorted', th.dataset.col === sortCol);
-    });
+    tbody.querySelectorAll('.kill-btn').forEach(btn =>
+      btn.addEventListener('click', () => showKillModal(btn.dataset.pid, btn.dataset.name))
+    );
+    tbody.querySelectorAll('.category-row[data-toggle]').forEach(row =>
+      row.addEventListener('click', () => { collapsed[row.dataset.toggle] = !collapsed[row.dataset.toggle]; renderProcesses(); })
+    );
+    document.querySelectorAll('.proc-table thead th[data-col]').forEach(th =>
+      th.classList.toggle('sorted', th.dataset.col === sortCol)
+    );
   }
 
   // ── KILL MODAL ───────────────────────────────────────────────
   function showKillModal(pid, name) {
-    pendingKill = { pid, name };
+    pendingKill = {pid, name};
     document.getElementById('modal-proc-name').textContent   = name;
     document.getElementById('modal-proc-pid').textContent    = pid;
     document.getElementById('modal-device-name').textContent = currentDevice.name;
@@ -473,16 +510,14 @@
     if (!pendingKill) return;
     document.getElementById('kill-modal').classList.remove('open');
     try {
-      const res = await api('/devices/' + currentDevice.id + '/kill', {
-        method: 'POST', body: JSON.stringify({ pid: parseInt(pendingKill.pid) })
-      });
+      const res = await api('/devices/' + currentDevice.id + '/kill', { method:'POST', body: JSON.stringify({pid: parseInt(pendingKill.pid)}) });
       if (res && res.ok) { toast('Killed ' + pendingKill.name); setTimeout(loadProcesses, 800); }
-      else { toast('Failed to kill process', true); }
-    } catch (e) { toast('Error sending kill command', true); }
+      else toast('Failed to kill process', true);
+    } catch(e) { toast('Error sending kill command', true); }
     pendingKill = null;
   }
 
-  // ── SCREEN VIEWER ────────────────────────────────────────────
+  // ── SCREEN ───────────────────────────────────────────────────
   function openScreenModal() {
     document.getElementById('screen-device-label').textContent = currentDevice.name.toUpperCase();
     document.getElementById('screen-modal').classList.add('open');
@@ -490,10 +525,7 @@
     screenTimer = setInterval(fetchScreen, 2000);
   }
 
-  function stopScreenPolling() {
-    clearInterval(screenTimer);
-    screenTimer = null;
-  }
+  function stopScreenPolling() { clearInterval(screenTimer); screenTimer = null; }
 
   async function fetchScreen() {
     if (!currentDevice) return;
@@ -506,21 +538,95 @@
         img.src = 'data:image/jpeg;base64,' + data.screenshot;
         img.style.display = 'block';
         document.getElementById('screen-placeholder').style.display = 'none';
-        const ts = new Date(data.timestamp * 1000);
-        document.getElementById('screen-ts').textContent = ts.toLocaleTimeString();
+        document.getElementById('screen-ts').textContent = new Date(data.timestamp * 1000).toLocaleTimeString();
       }
-    } catch (e) { /* silent fail */ }
+    } catch(e) {}
+  }
+
+  // ── ADMIN ────────────────────────────────────────────────────
+  async function loadAdminPage() {
+    showPage('page-admin');
+    loadLogs();
+    loadAdminUsers();
+    loadAdminDevices();
+  }
+
+  async function loadLogs() {
+    const wrap = document.getElementById('logs-wrap');
+    wrap.innerHTML = '<div class="empty-state"><span class="spinner"></span>Loading...</div>';
+    try {
+      const res  = await api('/admin/logs?days=' + logDays);
+      if (!res) return;
+      const logs = await res.json();
+      if (!logs.length) { wrap.innerHTML = '<div class="empty-state">No logs found.</div>'; return; }
+      wrap.innerHTML = `<table class="log-table">
+        <thead><tr><th>DATE</th><th>TIME</th><th>USER</th><th>EVENT</th><th>DETAIL</th></tr></thead>
+        <tbody>${logs.map(l => `
+          <tr class="${l.fail?'fail':''}">
+            <td>${l.date}</td>
+            <td>${l.time}</td>
+            <td>${l.user}</td>
+            <td class="event">${l.event}</td>
+            <td class="detail">${l.detail||'—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load logs.</div>'; }
+  }
+
+  async function loadAdminUsers() {
+    const wrap = document.getElementById('users-wrap');
+    try {
+      const res   = await api('/admin/users');
+      if (!res) return;
+      const users = await res.json();
+      wrap.innerHTML = users.map(u => `
+        <div class="user-row">
+          <div class="user-info">
+            <div>${u.username} ${u.locked ? '<span class="user-locked">LOCKED</span>' : ''}</div>
+            <div class="role">${u.role.toUpperCase()}</div>
+          </div>
+          <button class="lock-btn ${u.locked?'unlock':''}" onclick="toggleLockUser('${u.username}', ${!u.locked})">
+            ${u.locked ? 'UNLOCK' : 'LOCK'}
+          </button>
+        </div>`).join('');
+    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load users.</div>'; }
+  }
+
+  async function toggleLockUser(username, lock) {
+    const res = await api('/admin/users/' + username + '/lock', { method:'POST', body: JSON.stringify({locked:lock}) });
+    if (res && res.ok) { toast(lock ? username + ' locked' : username + ' unlocked'); loadAdminUsers(); }
+    else toast('Failed to update user', true);
+  }
+
+  async function loadAdminDevices() {
+    const wrap = document.getElementById('admin-devices-wrap');
+    try {
+      const res     = await api('/devices');
+      if (!res) return;
+      const devices = await res.json();
+      if (!devices.length) { wrap.innerHTML = '<div class="empty-state">No devices.</div>'; return; }
+      wrap.innerHTML = devices.map(d => `
+        <div class="user-row">
+          <div class="user-info">
+            <div>${d.name} <span style="color:${d.online?'var(--success)':'var(--danger)'};font-size:0.65rem;margin-left:0.5rem">${d.online?'ONLINE':'OFFLINE'}</span></div>
+            <div class="role">${d.hidden ? 'HIDDEN FROM USERS' : 'VISIBLE TO ALL'}</div>
+          </div>
+          <button class="lock-btn ${d.hidden?'unlock':''}" onclick="toggleHideDevice('${d.id}',${!d.hidden})">
+            ${d.hidden ? 'SHOW' : 'HIDE'}
+          </button>
+        </div>`).join('');
+    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load.</div>'; }
   }
 
   // ── EVENTS ───────────────────────────────────────────────────
   document.getElementById('btn-login').addEventListener('click', doLogin);
   document.getElementById('btn-logout').addEventListener('click', doLogout);
+  document.getElementById('btn-admin').addEventListener('click', loadAdminPage);
   document.getElementById('btn-back').addEventListener('click', () => {
-    clearInterval(pollTimer);
-    stopScreenPolling();
+    clearInterval(pollTimer); stopScreenPolling();
     document.getElementById('screen-modal').classList.remove('open');
-    showPage('page-devices');
-    loadDevices();
+    showPage('page-devices'); loadDevices();
   });
   document.getElementById('btn-refresh').addEventListener('click', loadProcesses);
   document.getElementById('btn-screen').addEventListener('click', openScreenModal);
@@ -528,21 +634,34 @@
     stopScreenPolling();
     document.getElementById('screen-modal').classList.remove('open');
   });
-  document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-  document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-pass').focus(); });
+  document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  document.getElementById('login-user').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pass').focus(); });
   document.getElementById('proc-search').addEventListener('input', renderProcesses);
-  document.getElementById('modal-cancel').addEventListener('click', () => { document.getElementById('kill-modal').classList.remove('open'); pendingKill = null; });
+  document.getElementById('modal-cancel').addEventListener('click', () => { document.getElementById('kill-modal').classList.remove('open'); pendingKill=null; });
   document.getElementById('modal-confirm').addEventListener('click', confirmKill);
-  document.querySelectorAll('.proc-table thead th[data-col]').forEach(th => {
+  document.querySelectorAll('.proc-table thead th[data-col]').forEach(th =>
     th.addEventListener('click', () => {
-      if (sortCol === th.dataset.col) sortAsc = !sortAsc;
-      else { sortCol = th.dataset.col; sortAsc = false; }
+      if (sortCol===th.dataset.col) sortAsc=!sortAsc; else { sortCol=th.dataset.col; sortAsc=false; }
       renderProcesses();
-    });
-  });
+    })
+  );
+  document.querySelectorAll('.filter-btn[data-days]').forEach(btn =>
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      logDays = parseInt(btn.dataset.days);
+      loadLogs();
+    })
+  );
 
   // ── INIT ─────────────────────────────────────────────────────
-  if (authToken) { showPage('page-devices'); loadDevices(); }
+  if (authToken) {
+    document.getElementById('nav-user').textContent = (sessionStorage.getItem('ctrl_token')||'').slice(0,6);
+    document.getElementById('nav-role').textContent = (userRole||'').toUpperCase();
+    document.getElementById('btn-admin').style.display = can('manage_users') ? 'block' : 'none';
+    showPage('page-devices');
+    loadDevices();
+  }
 </script>
 </body>
 </html>
