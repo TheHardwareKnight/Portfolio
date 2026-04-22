@@ -12,6 +12,7 @@
       --bg: #0a0a0a; --fg: #f0ede6; --accent: #e8ff47;
       --muted: #555; --card: #141414; --border: #222;
       --danger: #ff4747; --success: #47ff8a; --warn: #ffaa47;
+      --console-bg: #050505; --console-fg: #c8ffc8;
     }
     body { background: var(--bg); color: var(--fg); font-family: 'Syne', sans-serif; min-height: 100vh; overflow-x: hidden; }
     body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 999; opacity: 0.4; }
@@ -45,7 +46,7 @@
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
     .login-error { color: var(--danger); font-family: 'Space Mono', monospace; font-size: 0.75rem; margin-top: 1rem; min-height: 1rem; }
 
-    /* SHARED LAYOUT */
+    /* SHARED */
     .dash-page { padding-top: 4.5rem; min-height: 100vh; }
     .dash-header { padding: 2rem 2.5rem 1.5rem; border-bottom: 1px solid var(--border); }
     .dash-header h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
@@ -61,7 +62,6 @@
     .device-card:hover { border-color: #444; transform: translateY(-2px); }
     .device-card:hover::before { transform: scaleX(1); }
     .device-card.offline { opacity: 0.45; }
-    .device-card.hidden-device { border-style: dashed; border-color: #2a2a2a; }
     .device-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
     .device-os { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-bottom: 1rem; }
     .device-stats { display: flex; gap: 1rem; }
@@ -71,11 +71,6 @@
     .device-status { position: absolute; top: 1rem; right: 1rem; width: 8px; height: 8px; border-radius: 50%; }
     .device-status.offline { background: var(--danger); }
     .device-status.online { background: var(--success); animation: blink 2s infinite; }
-    .device-badge { position: absolute; bottom: 0.75rem; right: 1rem; font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; }
-    .device-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
-    .dev-action-btn { flex: 1; background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; transition: all 0.15s; text-align: center; }
-    .dev-action-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .dev-action-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
 
     /* PROCESSES */
     .proc-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
@@ -91,6 +86,7 @@
     .proc-count { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
     .toolbar-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 0.9rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s; white-space: nowrap; }
     .toolbar-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .toolbar-btn.active { border-color: var(--accent); color: var(--accent); }
 
     /* TABLE */
     .proc-table-wrap { border: 1px solid var(--border); overflow: hidden; }
@@ -110,6 +106,25 @@
     .kill-btn { background: none; border: 1px solid #2a2a2a; color: var(--muted); padding: 0.25rem 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; transition: all 0.15s; }
     .kill-btn:hover { border-color: var(--danger); color: var(--danger); background: rgba(255,71,71,0.05); }
 
+    /* CONSOLE PANEL */
+    #console-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 0; background: var(--console-bg); border-top: 1px solid #1a1a1a; z-index: 150; transition: height 0.3s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; }
+    #console-panel.open { height: 320px; }
+    .console-header { display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1rem; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
+    .console-header span { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--console-fg); letter-spacing: 0.1em; }
+    .console-header .console-device { color: var(--accent); }
+    .console-close { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.7rem; transition: color 0.15s; }
+    .console-close:hover { color: var(--danger); }
+    .console-output { flex: 1; overflow-y: auto; padding: 0.75rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--console-fg); line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+    .console-output .line-cmd { color: var(--accent); }
+    .console-output .line-err { color: var(--danger); }
+    .console-input-row { display: flex; align-items: center; padding: 0.5rem 1rem; border-top: 1px solid #1a1a1a; flex-shrink: 0; gap: 0.5rem; }
+    .console-prompt { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--accent); white-space: nowrap; }
+    .console-input { flex: 1; background: none; border: none; outline: none; color: var(--console-fg); font-family: 'Space Mono', monospace; font-size: 0.78rem; }
+    .console-input::placeholder { color: #333; }
+    .console-send { background: none; border: 1px solid #2a2a2a; color: var(--muted); padding: 0.3rem 0.7rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; transition: all 0.15s; }
+    .console-send:hover { border-color: var(--accent); color: var(--accent); }
+    .console-send:disabled { opacity: 0.3; cursor: not-allowed; }
+
     /* ADMIN SLIDE PANEL */
     #admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 199; display: none; }
     #admin-overlay.open { display: block; }
@@ -120,14 +135,33 @@
     .admin-panel-body { overflow-y: auto; padding: 1.5rem; flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
     .admin-card { border: 1px solid var(--border); background: var(--card); padding: 1.25rem; }
     .admin-card h3 { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1.1rem; }
-    .user-row { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid #1a1a1a; gap: 0.5rem; }
+    .user-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #1a1a1a; gap: 0.5rem; }
     .user-row:last-child { border-bottom: none; }
-    .user-info { font-family: 'Space Mono', monospace; font-size: 0.8rem; }
+    .user-info { font-family: 'Space Mono', monospace; font-size: 0.8rem; flex: 1; }
     .user-info .role { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
-    .user-locked { color: var(--danger); font-size: 0.65rem; font-family: 'Space Mono', monospace; margin-left: 0.5rem; }
-    .lock-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0.7rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-    .lock-btn:hover { border-color: var(--danger); color: var(--danger); }
-    .lock-btn.unlock:hover { border-color: var(--success); color: var(--success); }
+    .user-locked { color: var(--danger); font-size: 0.65rem; margin-left: 0.5rem; }
+    .user-actions { display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end; }
+    .small-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.25rem 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.62rem; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .small-btn:hover { border-color: var(--fg); color: var(--fg); }
+    .small-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+    .small-btn.success:hover { border-color: var(--success); color: var(--success); }
+    .pw-form { margin-top: 0.5rem; display: none; gap: 0.4rem; flex-direction: column; }
+    .pw-form.open { display: flex; }
+    .pw-form input { background: var(--bg); border: 1px solid var(--border); color: var(--fg); padding: 0.4rem 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; outline: none; width: 160px; }
+    .pw-form input:focus { border-color: var(--accent); }
+    .pw-form-btns { display: flex; gap: 0.3rem; }
+
+    /* DEVICE ACCESS */
+    .device-access-row { padding: 0.75rem 0; border-bottom: 1px solid #1a1a1a; }
+    .device-access-row:last-child { border-bottom: none; }
+    .device-access-name { font-family: 'Space Mono', monospace; font-size: 0.8rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .device-access-name .online-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); display: inline-block; }
+    .device-access-name .offline-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--danger); display: inline-block; }
+    .user-toggles { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .user-toggle { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.2rem 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.62rem; cursor: pointer; transition: all 0.15s; }
+    .user-toggle.on { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,0.05); }
+
+    /* LOGS */
     .log-filters { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
     .filter-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0.7rem; font-family: 'Space Mono', monospace; font-size: 0.68rem; cursor: pointer; transition: all 0.15s; letter-spacing: 0.08em; }
     .filter-btn.active { border-color: var(--accent); color: var(--accent); }
@@ -219,6 +253,7 @@
       <span class="proc-count" id="proc-count"></span>
       <button class="toolbar-btn" id="btn-refresh">↻ REFRESH</button>
       <button class="toolbar-btn" id="btn-screen" style="display:none">⬛ SCREEN</button>
+      <button class="toolbar-btn" id="btn-console" style="display:none">≥_ CONSOLE</button>
     </div>
     <div class="proc-table-wrap">
       <table class="proc-table">
@@ -236,7 +271,22 @@
   </div>
 </div>
 
-<!-- ADMIN OVERLAY -->
+<!-- CONSOLE PANEL -->
+<div id="console-panel">
+  <div class="console-header">
+    <span>PS <span class="console-device" id="console-device-name"></span>&gt;</span>
+    <button class="console-close" id="btn-close-console">✕ CLOSE</button>
+  </div>
+  <div class="console-output" id="console-output"><span style="color:var(--muted)">PowerShell console ready. Type a command below.</span>
+</div>
+  <div class="console-input-row">
+    <span class="console-prompt">PS&gt;</span>
+    <input class="console-input" id="console-input" type="text" placeholder="Enter PowerShell command..." spellcheck="false" autocomplete="off"/>
+    <button class="console-send" id="btn-console-send">RUN</button>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
 <div id="admin-overlay"></div>
 <div id="admin-panel">
   <div class="admin-panel-head">
@@ -245,19 +295,16 @@
   </div>
   <div class="admin-panel-body">
 
-    <!-- Users -->
     <div class="admin-card">
       <h3>User Accounts</h3>
       <div id="users-wrap"><div class="empty-state"><span class="spinner"></span>Loading...</div></div>
     </div>
 
-    <!-- Device Visibility -->
     <div class="admin-card">
-      <h3>Device Visibility</h3>
+      <h3>Device Access</h3>
       <div id="admin-devices-wrap"><div class="empty-state"><span class="spinner"></span>Loading...</div></div>
     </div>
 
-    <!-- Logs -->
     <div class="admin-card">
       <h3>Login Logs</h3>
       <div class="log-filters">
@@ -265,7 +312,7 @@
         <button class="filter-btn" data-days="3">3 DAYS</button>
         <button class="filter-btn" data-days="7">7 DAYS</button>
       </div>
-      <div id="logs-wrap"><div class="empty-state"><span class="spinner"></span>Loading logs...</div></div>
+      <div id="logs-wrap"><div class="empty-state"><span class="spinner"></span>Loading...</div></div>
     </div>
 
   </div>
@@ -303,13 +350,20 @@
 
   let authToken     = sessionStorage.getItem('ctrl_token') || null;
   let userRole      = sessionStorage.getItem('ctrl_role')  || null;
+  let userName      = sessionStorage.getItem('ctrl_user')  || null;
   let permissions   = JSON.parse(sessionStorage.getItem('ctrl_perms') || '[]');
   let currentDevice = null;
   let allProcesses  = [];
   let sortCol = 'cpu', sortAsc = false;
   let pollTimer = null, screenTimer = null, pendingKill = null;
   let logDays = 1;
-  const collapsed = { focused: false, user: false, background: false };
+  let consoleOpen   = false;
+  let consoleBusy   = false;
+  let cmdHistory    = [];
+  let historyIdx    = -1;
+  const collapsed   = { focused: false, user: false, background: false };
+  let allDeviceList = []; // cached for admin access panel
+  let allUserList   = []; // cached for admin access panel
 
   const can = p => permissions.includes(p);
 
@@ -337,87 +391,6 @@
     return res;
   }
 
-  // ── ADMIN PANEL ──────────────────────────────────────────────
-  function openAdmin() {
-    document.getElementById('admin-panel').classList.add('open');
-    document.getElementById('admin-overlay').classList.add('open');
-    document.getElementById('btn-admin').classList.add('active');
-    loadAdminUsers();
-    loadAdminDevices();
-    loadLogs();
-  }
-
-  function closeAdmin() {
-    document.getElementById('admin-panel').classList.remove('open');
-    document.getElementById('admin-overlay').classList.remove('open');
-    document.getElementById('btn-admin').classList.remove('active');
-  }
-
-  async function loadLogs() {
-    const wrap = document.getElementById('logs-wrap');
-    wrap.innerHTML = '<div class="empty-state"><span class="spinner"></span>Loading...</div>';
-    try {
-      const res  = await api('/admin/logs?days=' + logDays);
-      if (!res) return;
-      const logs = await res.json();
-      if (!logs.length) { wrap.innerHTML = '<div class="empty-state">No logs found.</div>'; return; }
-      wrap.innerHTML = `<table class="log-table">
-        <thead><tr><th>DATE</th><th>TIME</th><th>USER</th><th>EVENT</th><th>DETAIL</th></tr></thead>
-        <tbody>${logs.map(l => `
-          <tr class="${l.fail?'fail':''}">
-            <td>${l.date}</td><td>${l.time}</td><td>${l.user}</td>
-            <td class="event">${l.event}</td>
-            <td class="detail" title="${l.detail||''}">${l.detail||'—'}</td>
-          </tr>`).join('')}
-        </tbody></table>`;
-    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load logs.</div>'; }
-  }
-
-  async function loadAdminUsers() {
-    const wrap = document.getElementById('users-wrap');
-    try {
-      const res   = await api('/admin/users');
-      if (!res) return;
-      const users = await res.json();
-      wrap.innerHTML = users.map(u => `
-        <div class="user-row">
-          <div class="user-info">
-            <div>${u.username}${u.locked?'<span class="user-locked">LOCKED</span>':''}</div>
-            <div class="role">${u.role.toUpperCase()}</div>
-          </div>
-          <button class="lock-btn ${u.locked?'unlock':''}" onclick="toggleLockUser('${u.username}',${!u.locked})">
-            ${u.locked?'UNLOCK':'LOCK'}
-          </button>
-        </div>`).join('');
-    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load users.</div>'; }
-  }
-
-  async function toggleLockUser(username, lock) {
-    const res = await api('/admin/users/'+username+'/lock', { method:'POST', body: JSON.stringify({locked:lock}) });
-    if (res && res.ok) { toast(lock ? username+' locked' : username+' unlocked'); loadAdminUsers(); }
-    else toast('Failed to update user', true);
-  }
-
-  async function loadAdminDevices() {
-    const wrap = document.getElementById('admin-devices-wrap');
-    try {
-      const res     = await api('/devices');
-      if (!res) return;
-      const devices = await res.json();
-      if (!devices.length) { wrap.innerHTML = '<div class="empty-state">No devices.</div>'; return; }
-      wrap.innerHTML = devices.map(d => `
-        <div class="user-row">
-          <div class="user-info">
-            <div>${d.name} <span style="color:${d.online?'var(--success)':'var(--danger)'};font-size:0.65rem;margin-left:0.4rem">${d.online?'ONLINE':'OFFLINE'}</span></div>
-            <div class="role">${d.hidden?'HIDDEN FROM USERS':'VISIBLE TO ALL'}</div>
-          </div>
-          <button class="lock-btn ${d.hidden?'unlock':''}" onclick="toggleHideDevice('${d.id}',${!d.hidden})">
-            ${d.hidden?'SHOW':'HIDE'}
-          </button>
-        </div>`).join('');
-    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load.</div>'; }
-  }
-
   // ── AUTH ─────────────────────────────────────────────────────
   async function doLogin() {
     const user = document.getElementById('login-user').value.trim();
@@ -432,9 +405,11 @@
       if (res.ok && data.token) {
         authToken   = data.token;
         userRole    = data.role;
+        userName    = data.username;
         permissions = data.permissions || [];
         sessionStorage.setItem('ctrl_token', authToken);
         sessionStorage.setItem('ctrl_role',  userRole);
+        sessionStorage.setItem('ctrl_user',  userName);
         sessionStorage.setItem('ctrl_perms', JSON.stringify(permissions));
         document.getElementById('nav-role').textContent  = userRole.toUpperCase();
         document.getElementById('btn-admin').style.display = can('manage_users') ? 'block' : 'none';
@@ -448,9 +423,9 @@
   }
 
   function doLogout() {
-    authToken = userRole = null; permissions = [];
+    authToken = userRole = userName = null; permissions = [];
     sessionStorage.clear();
-    clearInterval(pollTimer); stopScreenPolling(); closeAdmin();
+    clearInterval(pollTimer); stopScreenPolling(); closeConsole(); closeAdmin();
     showPage('page-login');
     document.getElementById('login-pass').value = '';
   }
@@ -462,10 +437,10 @@
       const res     = await api('/devices');
       if (!res) return;
       const devices = await res.json();
-      if (!devices.length) { grid.innerHTML = '<div class="empty-state">No devices reporting in yet.</div>'; return; }
-      const isAdmin = can('manage_devices');
+      allDeviceList = devices;
+      if (!devices.length) { grid.innerHTML = '<div class="empty-state">No devices visible to your account.</div>'; return; }
       grid.innerHTML = devices.map(d => `
-        <div class="device-card ${d.online?'':'offline'} ${d.hidden?'hidden-device':''}" data-id="${d.id}">
+        <div class="device-card ${d.online?'':'offline'}" data-id="${d.id}">
           <div class="device-status ${d.online?'online':'offline'}"></div>
           <div class="device-name">${d.name}</div>
           <div class="device-os">${d.os} · ${d.online?'ONLINE':'LAST SEEN '+d.last_seen}</div>
@@ -474,7 +449,6 @@
             <div class="stat"><div class="stat-label">MEM</div><div class="stat-value">${d.mem_used_gb??'—'} GB</div></div>
             <div class="stat"><div class="stat-label">PROCS</div><div class="stat-value">${d.process_count??'—'}</div></div>
           </div>
-          ${d.hidden?'<div class="device-badge">HIDDEN</div>':''}
         </div>`).join('');
       grid.querySelectorAll('.device-card').forEach(card => {
         card.addEventListener('click', () => {
@@ -483,22 +457,18 @@
         });
       });
       document.getElementById('devices-subtitle').textContent =
-        devices.filter(d=>d.online).length + ' OF ' + devices.length + ' ONLINE';
+        devices.filter(d=>d.online).length + ' OF ' + devices.length + ' VISIBLE';
     } catch(e) { grid.innerHTML = '<div class="empty-state">Failed to load devices.</div>'; }
-  }
-
-  async function toggleHideDevice(id, hide) {
-    const res = await api('/devices/'+id+'/hide', { method:'POST', body: JSON.stringify({hidden:hide}) });
-    if (res && res.ok) { toast(hide?'Device hidden':'Device visible'); loadAdminDevices(); loadDevices(); }
-    else toast('Failed to update device', true);
   }
 
   // ── PROCESSES ────────────────────────────────────────────────
   function openDevice(dev) {
     currentDevice = dev;
     document.getElementById('proc-device-name').textContent = dev.name.toUpperCase();
-    document.getElementById('btn-screen').style.display   = can('view_screen') ? 'block' : 'none';
-    document.getElementById('action-col').style.display   = can('end_tasks')   ? ''      : 'none';
+    document.getElementById('btn-screen').style.display  = can('view_screen') ? 'block' : 'none';
+    document.getElementById('btn-console').style.display = can('console')     ? 'block' : 'none';
+    document.getElementById('action-col').style.display  = can('end_tasks')   ? ''      : 'none';
+    document.getElementById('console-device-name').textContent = dev.name;
     showPage('page-processes');
     loadProcesses();
     clearInterval(pollTimer);
@@ -554,18 +524,15 @@
     const background = sortGroup(filtered.filter(p=>p.category==='background'));
 
     document.getElementById('proc-count').textContent = filtered.length+' / '+allProcesses.length+' PROCESSES';
-
     const tbody = document.getElementById('proc-tbody');
     if (!filtered.length) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--muted);font-family:Space Mono,monospace;font-size:0.8rem;">No matching processes.</td></tr>';
       return;
     }
-
     let html = '';
     if (focused.length)    html += makeSeparator('⬤ Focused', focused.length, 'focused')         + makeRows(focused, 'focused');
     if (user.length)       html += makeSeparator('◈ User Processes', user.length, 'user')         + makeRows(user, 'user');
     if (background.length) html += makeSeparator('◌ Background', background.length, 'background') + makeRows(background, 'background');
-
     tbody.innerHTML = html;
     tbody.querySelectorAll('.kill-btn').forEach(btn=>
       btn.addEventListener('click',()=>showKillModal(btn.dataset.pid, btn.dataset.name))
@@ -594,7 +561,7 @@
       const res = await api('/devices/'+currentDevice.id+'/kill', { method:'POST', body: JSON.stringify({pid:parseInt(pendingKill.pid)}) });
       if (res && res.ok) { toast('Killed '+pendingKill.name); setTimeout(loadProcesses, 800); }
       else toast('Failed to kill process', true);
-    } catch(e) { toast('Error sending kill command', true); }
+    } catch(e) { toast('Error', true); }
     pendingKill = null;
   }
 
@@ -624,6 +591,218 @@
     } catch(e) {}
   }
 
+  // ── CONSOLE ──────────────────────────────────────────────────
+  function openConsole() {
+    consoleOpen = true;
+    document.getElementById('console-panel').classList.add('open');
+    document.getElementById('btn-console').classList.add('active');
+    setTimeout(()=>document.getElementById('console-input').focus(), 350);
+  }
+
+  function closeConsole() {
+    consoleOpen = false;
+    document.getElementById('console-panel').classList.remove('open');
+    document.getElementById('btn-console').classList.remove('active');
+  }
+
+  function appendConsole(text, cls) {
+    const out  = document.getElementById('console-output');
+    const line = document.createElement('div');
+    if (cls) line.className = cls;
+    line.textContent = text;
+    out.appendChild(line);
+    out.scrollTop = out.scrollHeight;
+  }
+
+  async function runConsoleCommand() {
+    const input = document.getElementById('console-input');
+    const btn   = document.getElementById('btn-console-send');
+    const cmd   = input.value.trim();
+    if (!cmd || consoleBusy) return;
+
+    cmdHistory.unshift(cmd);
+    historyIdx = -1;
+    input.value = '';
+    consoleBusy = true;
+    btn.disabled = true;
+
+    appendConsole('PS> ' + cmd, 'line-cmd');
+    appendConsole('Running...', 'line-wait');
+
+    try {
+      const res  = await api('/devices/'+currentDevice.id+'/console', { method:'POST', body: JSON.stringify({cmd}) });
+      if (!res || !res.ok) { appendConsole('[ERROR] Failed to send command.', 'line-err'); consoleBusy=false; btn.disabled=false; return; }
+      const data = await res.json();
+      const cmdId = data.cmd_id;
+
+      // Poll for result
+      let attempts = 0;
+      const poll = setInterval(async () => {
+        attempts++;
+        try {
+          const r = await api('/devices/'+currentDevice.id+'/console/'+cmdId);
+          if (!r) { clearInterval(poll); consoleBusy=false; btn.disabled=false; return; }
+          const d = await r.json();
+          if (d.ready) {
+            clearInterval(poll);
+            // Remove "Running..." line
+            const out = document.getElementById('console-output');
+            const waiting = out.querySelector('.line-wait');
+            if (waiting) waiting.remove();
+            appendConsole(d.output, '');
+            appendConsole('', '');
+            consoleBusy = false;
+            btn.disabled = false;
+            input.focus();
+          } else if (attempts > 20) {
+            clearInterval(poll);
+            appendConsole('[TIMEOUT] No response after 40s.', 'line-err');
+            consoleBusy = false;
+            btn.disabled = false;
+          }
+        } catch(e) { clearInterval(poll); consoleBusy=false; btn.disabled=false; }
+      }, 2000);
+
+    } catch(e) { appendConsole('[ERROR] '+e, 'line-err'); consoleBusy=false; btn.disabled=false; }
+  }
+
+  // ── ADMIN ────────────────────────────────────────────────────
+  function openAdmin() {
+    document.getElementById('admin-panel').classList.add('open');
+    document.getElementById('admin-overlay').classList.add('open');
+    document.getElementById('btn-admin').classList.add('active');
+    loadAdminUsers();
+    loadAdminDevices();
+    loadLogs();
+  }
+
+  function closeAdmin() {
+    document.getElementById('admin-panel').classList.remove('open');
+    document.getElementById('admin-overlay').classList.remove('open');
+    document.getElementById('btn-admin').classList.remove('active');
+  }
+
+  async function loadAdminUsers() {
+    const wrap = document.getElementById('users-wrap');
+    try {
+      const res   = await api('/admin/users');
+      if (!res) return;
+      allUserList = await res.json();
+      wrap.innerHTML = allUserList.map(u => `
+        <div class="user-row">
+          <div class="user-info">
+            <div>${u.username}${u.locked?'<span class="user-locked">LOCKED</span>':''}</div>
+            <div class="role">${u.role.toUpperCase()}</div>
+          </div>
+          <div class="user-actions">
+            <button class="small-btn ${u.locked?'success':'danger'}" onclick="toggleLockUser('${u.username}',${!u.locked})">
+              ${u.locked?'UNLOCK':'LOCK'}
+            </button>
+            <button class="small-btn" onclick="togglePwForm('${u.username}')">CHANGE PW</button>
+            <div class="pw-form" id="pw-form-${u.username}">
+              <input type="password" id="pw-input-${u.username}" placeholder="New password..." autocomplete="new-password"/>
+              <div class="pw-form-btns">
+                <button class="small-btn success" onclick="submitPassword('${u.username}')">SAVE</button>
+                <button class="small-btn" onclick="togglePwForm('${u.username}')">CANCEL</button>
+              </div>
+            </div>
+          </div>
+        </div>`).join('');
+    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load users.</div>'; }
+  }
+
+  function togglePwForm(username) {
+    const form = document.getElementById('pw-form-'+username);
+    form.classList.toggle('open');
+    if (form.classList.contains('open')) {
+      document.getElementById('pw-input-'+username).focus();
+    }
+  }
+
+  async function submitPassword(username) {
+    const input = document.getElementById('pw-input-'+username);
+    const pw    = input.value.trim();
+    if (!pw) return;
+    const res = await api('/admin/users/'+username+'/password', { method:'POST', body: JSON.stringify({password:pw}) });
+    if (res && res.ok) { toast('Password updated for '+username); togglePwForm(username); input.value=''; }
+    else { const d=await res.json(); toast(d.error||'Failed', true); }
+  }
+
+  async function toggleLockUser(username, lock) {
+    const res = await api('/admin/users/'+username+'/lock', { method:'POST', body: JSON.stringify({locked:lock}) });
+    if (res && res.ok) { toast(lock?username+' locked':username+' unlocked'); loadAdminUsers(); }
+    else toast('Failed', true);
+  }
+
+  async function loadAdminDevices() {
+    const wrap = document.getElementById('admin-devices-wrap');
+    try {
+      const devRes  = await api('/devices');
+      const userRes = await api('/admin/users');
+      if (!devRes||!userRes) return;
+      const devices = await devRes.json();
+      const users   = await userRes.json();
+      allDeviceList = devices;
+      allUserList   = users;
+
+      if (!devices.length) { wrap.innerHTML = '<div class="empty-state">No devices reporting in.</div>'; return; }
+
+      wrap.innerHTML = devices.map(d => {
+        const allowed = d.allowed_users || [];
+        const toggles = users.map(u => `
+          <button class="user-toggle ${allowed.includes(u.username)?'on':''}"
+            onclick="toggleDeviceUser('${d.id}','${u.username}',${!allowed.includes(u.username)},this)">
+            ${u.username}
+          </button>`).join('');
+        return `<div class="device-access-row">
+          <div class="device-access-name">
+            <span class="${d.online?'online-dot':'offline-dot'}"></span>
+            ${d.name}
+          </div>
+          <div class="user-toggles" id="toggles-${d.id}">${toggles}</div>
+        </div>`;
+      }).join('');
+    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load.</div>'; }
+  }
+
+  async function toggleDeviceUser(deviceId, username, add, btn) {
+    // Get current allowed list for this device
+    const dev     = allDeviceList.find(d=>d.id===deviceId);
+    if (!dev) return;
+    let allowed   = [...(dev.allowed_users||[])];
+    if (add) { if (!allowed.includes(username)) allowed.push(username); }
+    else     { allowed = allowed.filter(u=>u!==username); }
+
+    const res = await api('/devices/'+deviceId+'/access', { method:'POST', body: JSON.stringify({allowed_users:allowed}) });
+    if (res && res.ok) {
+      dev.allowed_users = allowed;
+      btn.classList.toggle('on', add);
+      toast((add?'Granted ':'Revoked ')+username+' access to '+dev.name);
+    } else {
+      toast('Failed to update access', true);
+    }
+  }
+
+  async function loadLogs() {
+    const wrap = document.getElementById('logs-wrap');
+    wrap.innerHTML = '<div class="empty-state"><span class="spinner"></span>Loading...</div>';
+    try {
+      const res  = await api('/admin/logs?days='+logDays);
+      if (!res) return;
+      const logs = await res.json();
+      if (!logs.length) { wrap.innerHTML = '<div class="empty-state">No logs found.</div>'; return; }
+      wrap.innerHTML = `<table class="log-table">
+        <thead><tr><th>DATE</th><th>TIME</th><th>USER</th><th>EVENT</th><th>DETAIL</th></tr></thead>
+        <tbody>${logs.map(l=>`
+          <tr class="${l.fail?'fail':''}">
+            <td>${l.date}</td><td>${l.time}</td><td>${l.user}</td>
+            <td class="event">${l.event}</td>
+            <td class="detail" title="${l.detail||''}">${l.detail||'—'}</td>
+          </tr>`).join('')}
+        </tbody></table>`;
+    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load logs.</div>'; }
+  }
+
   // ── EVENTS ───────────────────────────────────────────────────
   document.getElementById('btn-login').addEventListener('click', doLogin);
   document.getElementById('btn-logout').addEventListener('click', doLogout);
@@ -631,15 +810,28 @@
   document.getElementById('btn-close-admin').addEventListener('click', closeAdmin);
   document.getElementById('admin-overlay').addEventListener('click', closeAdmin);
   document.getElementById('btn-back').addEventListener('click', () => {
-    clearInterval(pollTimer); stopScreenPolling();
+    clearInterval(pollTimer); stopScreenPolling(); closeConsole();
     document.getElementById('screen-modal').classList.remove('open');
     showPage('page-devices'); loadDevices();
   });
   document.getElementById('btn-refresh').addEventListener('click', loadProcesses);
   document.getElementById('btn-screen').addEventListener('click', openScreenModal);
-  document.getElementById('btn-close-screen').addEventListener('click', () => {
-    stopScreenPolling();
-    document.getElementById('screen-modal').classList.remove('open');
+  document.getElementById('btn-console').addEventListener('click', () => { consoleOpen ? closeConsole() : openConsole(); });
+  document.getElementById('btn-close-console').addEventListener('click', closeConsole);
+  document.getElementById('btn-close-screen').addEventListener('click', () => { stopScreenPolling(); document.getElementById('screen-modal').classList.remove('open'); });
+  document.getElementById('btn-console-send').addEventListener('click', runConsoleCommand);
+  document.getElementById('console-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { runConsoleCommand(); return; }
+    if (e.key === 'ArrowUp') {
+      historyIdx = Math.min(historyIdx+1, cmdHistory.length-1);
+      if (cmdHistory[historyIdx]) e.target.value = cmdHistory[historyIdx];
+      e.preventDefault();
+    }
+    if (e.key === 'ArrowDown') {
+      historyIdx = Math.max(historyIdx-1, -1);
+      e.target.value = historyIdx >= 0 ? cmdHistory[historyIdx] : '';
+      e.preventDefault();
+    }
   });
   document.getElementById('login-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
   document.getElementById('login-user').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('login-pass').focus(); });
