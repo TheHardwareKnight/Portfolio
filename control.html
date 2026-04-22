@@ -203,7 +203,6 @@
   <div class="proc-header">
     <button class="btn-back" id="btn-back">← DEVICES</button>
     <div class="proc-title">// <span id="proc-device-name">DEVICE</span></div>
-    <button class="btn-screen" id="btn-screen">⬛ VIEW SCREEN</button>
   </div>
   <div class="proc-toolbar">
     <div class="search-wrap">
@@ -211,6 +210,7 @@
     </div>
     <span class="proc-count" id="proc-count"></span>
     <button class="refresh-btn" id="btn-refresh">↻ REFRESH</button>
+    <button class="refresh-btn" id="btn-screen" style="border-color:#333;color:var(--muted)">⬛ SCREEN</button>
   </div>
   <div class="proc-table-wrap">
     <table class="proc-table">
@@ -387,9 +387,12 @@
     } catch (e) { toast('Failed to fetch processes', true); }
   }
 
-  function makeRows(arr) {
+  const collapsed = { focused: false, user: false, background: false };
+
+  function makeRows(arr, category) {
+    if (collapsed[category]) return '';
     return arr.map(p => `
-      <tr>
+      <tr data-cat="${category}">
         <td title="${p.name}">${p.name}</td>
         <td class="pid">${p.pid}</td>
         <td class="cpu ${p.cpu > 20 ? 'high' : ''}">${p.cpu.toFixed(1)}%</td>
@@ -400,8 +403,12 @@
     `).join('');
   }
 
-  function makeSeparator(label, count) {
-    return `<tr class="category-row"><td colspan="6">${label} &nbsp;<span style="color:#333">(${count})</span></td></tr>`;
+  function makeSeparator(label, count, category) {
+    const arrow = collapsed[category] ? '▶' : '▼';
+    const collapsedNote = collapsed[category] ? '<span style="color:#444;margin-left:0.5rem;font-size:0.6rem">COLLAPSED</span>' : '';
+    return `<tr class="category-row" data-toggle="${category}" style="cursor:pointer">
+      <td colspan="6"><span style="color:var(--muted);margin-right:0.5rem;font-size:0.6rem">${arrow}</span>${label} <span style="color:#333">(${count})</span>${collapsedNote}</td>
+    </tr>`;
   }
 
   function sortGroup(arr) {
@@ -434,13 +441,19 @@
     }
 
     let html = '';
-    if (focused.length)    html += makeSeparator('⬤ Focused', focused.length)         + makeRows(focused);
-    if (user.length)       html += makeSeparator('◈ User Processes', user.length)      + makeRows(user);
-    if (background.length) html += makeSeparator('◌ Background', background.length)    + makeRows(background);
+    if (focused.length)    html += makeSeparator('⬤ Focused', focused.length, 'focused')         + makeRows(focused, 'focused');
+    if (user.length)       html += makeSeparator('◈ User Processes', user.length, 'user')         + makeRows(user, 'user');
+    if (background.length) html += makeSeparator('◌ Background', background.length, 'background') + makeRows(background, 'background');
 
     tbody.innerHTML = html;
     tbody.querySelectorAll('.kill-btn').forEach(btn => {
       btn.addEventListener('click', () => showKillModal(btn.dataset.pid, btn.dataset.name));
+    });
+    tbody.querySelectorAll('.category-row[data-toggle]').forEach(row => {
+      row.addEventListener('click', () => {
+        collapsed[row.dataset.toggle] = !collapsed[row.dataset.toggle];
+        renderProcesses();
+      });
     });
     document.querySelectorAll('.proc-table thead th[data-col]').forEach(th => {
       th.classList.toggle('sorted', th.dataset.col === sortCol);
