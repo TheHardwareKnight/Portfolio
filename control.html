@@ -749,9 +749,10 @@
 
       wrap.innerHTML = devices.map(d => {
         const allowed = d.allowed_users || [];
-        const toggles = users.map(u => `
+        const nonAdminUsers = users.filter(u => u.role !== 'admin');
+        const toggles = nonAdminUsers.map(u => `
           <button class="user-toggle ${allowed.includes(u.username)?'on':''}"
-            onclick="toggleDeviceUser('${d.id}','${u.username}',${!allowed.includes(u.username)},this)">
+            onclick="toggleDeviceUser('${d.id}','${u.username}',this)">
             ${u.username}
           </button>`).join('');
         return `<div class="device-access-row">
@@ -765,14 +766,13 @@
     } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load.</div>'; }
   }
 
-  async function toggleDeviceUser(deviceId, username, add, btn) {
-    // Get current allowed list for this device
-    const dev     = allDeviceList.find(d=>d.id===deviceId);
+  async function toggleDeviceUser(deviceId, username, btn) {
+    const add   = !btn.classList.contains('on');
+    const dev   = allDeviceList.find(d=>d.id===deviceId);
     if (!dev) return;
-    let allowed   = [...(dev.allowed_users||[])];
+    let allowed = [...(dev.allowed_users||[])];
     if (add) { if (!allowed.includes(username)) allowed.push(username); }
     else     { allowed = allowed.filter(u=>u!==username); }
-
     const res = await api('/devices/'+deviceId+'/access', { method:'POST', body: JSON.stringify({allowed_users:allowed}) });
     if (res && res.ok) {
       dev.allowed_users = allowed;
