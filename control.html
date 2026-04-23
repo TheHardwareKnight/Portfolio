@@ -11,8 +11,7 @@
     :root {
       --bg: #0a0a0a; --fg: #f0ede6; --accent: #e8ff47;
       --muted: #555; --card: #141414; --border: #222;
-      --danger: #ff4747; --success: #47ff8a; --warn: #ffaa47;
-      --console-bg: #050505; --console-fg: #c8ffc8;
+      --danger: #ff4747; --success: #47ff8a; --warn: #ffaa47; --info: #47aaff;
     }
     body { background: var(--bg); color: var(--fg); font-family: 'Syne', sans-serif; min-height: 100vh; overflow-x: hidden; }
     body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 999; opacity: 0.4; }
@@ -46,7 +45,7 @@
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
     .login-error { color: var(--danger); font-family: 'Space Mono', monospace; font-size: 0.75rem; margin-top: 1rem; min-height: 1rem; }
 
-    /* SHARED */
+    /* SHARED LAYOUT */
     .dash-page { padding-top: 4.5rem; min-height: 100vh; }
     .dash-header { padding: 2rem 2.5rem 1.5rem; border-bottom: 1px solid var(--border); }
     .dash-header h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
@@ -72,12 +71,33 @@
     .device-status.offline { background: var(--danger); }
     .device-status.online { background: var(--success); animation: blink 2s infinite; }
 
-    /* PROCESSES */
-    .proc-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    /* PROCESS PAGE */
+    .dash-page { padding-top: 4.5rem; }
+    .proc-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
     .btn-back { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 0.9rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s; }
     .btn-back:hover { border-color: var(--fg); color: var(--fg); }
     .proc-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
     .proc-title span { color: var(--accent); }
+
+    /* POWER BUTTON + DROPDOWN */
+    .power-wrap { position: relative; margin-left: auto; }
+    .power-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.4rem 0.8rem; font-family: 'Space Mono', monospace; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; line-height: 1; }
+    .power-btn:hover { border-color: var(--danger); color: var(--danger); }
+    .power-btn.frozen { border-color: var(--info); color: var(--info); animation: pulse-blue 1.5s infinite; }
+    @keyframes pulse-blue { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .power-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: var(--card); border: 1px solid var(--border); min-width: 170px; z-index: 200; display: none; animation: fadeUp 0.15s ease; }
+    .power-dropdown.open { display: block; }
+    .power-item { display: flex; align-items: center; gap: 0.6rem; width: 100%; background: none; border: none; border-bottom: 1px solid #1a1a1a; color: var(--fg); padding: 0.6rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; text-align: left; transition: background 0.1s; letter-spacing: 0.05em; }
+    .power-item:last-child { border-bottom: none; }
+    .power-item:hover { background: #1e1e1e; }
+    .power-item.danger:hover { color: var(--danger); }
+    .power-item.warn:hover { color: var(--warn); }
+    .power-item.accent:hover { color: var(--accent); }
+    .power-item.info:hover { color: var(--info); }
+    .power-sep { height: 1px; background: var(--border); margin: 0; border: none; padding: 0 !important; }
+    #freeze-badge { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--info); letter-spacing: 0.1em; display: none; }
+
+    /* TOOLBAR */
     .proc-toolbar { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
     .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 400px; }
     .search-wrap input { width: 100%; background: var(--card); border: 1px solid var(--border); color: var(--fg); padding: 0.6rem 1rem 0.6rem 2.2rem; font-family: 'Space Mono', monospace; font-size: 0.8rem; outline: none; transition: border-color 0.2s; }
@@ -106,22 +126,20 @@
     .kill-btn { background: none; border: 1px solid #2a2a2a; color: var(--muted); padding: 0.25rem 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; transition: all 0.15s; }
     .kill-btn:hover { border-color: var(--danger); color: var(--danger); background: rgba(255,71,71,0.05); }
 
-    /* CONSOLE PANEL */
-    #console-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 0; background: var(--console-bg); border-top: 1px solid #1a1a1a; z-index: 150; transition: height 0.3s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; }
-    #console-panel.open { height: 320px; }
-    .console-header { display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1rem; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
-    .console-header span { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--console-fg); letter-spacing: 0.1em; }
-    .console-header .console-device { color: var(--accent); }
-    .console-close { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.7rem; transition: color 0.15s; }
+    /* CONSOLE */
+    #console-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 0; background: #050505; border-top: 1px solid #1a1a1a; z-index: 150; transition: height 0.3s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; }
+    #console-panel.open { height: 300px; }
+    .console-header { display: flex; align-items: center; gap: 1rem; padding: 0.55rem 1rem; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
+    .console-title { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: #47ff8a; letter-spacing: 0.1em; }
+    .console-close { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.7rem; }
     .console-close:hover { color: var(--danger); }
-    .console-output { flex: 1; overflow-y: auto; padding: 0.75rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--console-fg); line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+    .console-output { flex: 1; overflow-y: auto; padding: 0.75rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #c8ffc8; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
     .console-output .line-cmd { color: var(--accent); }
     .console-output .line-err { color: var(--danger); }
-    .console-input-row { display: flex; align-items: center; padding: 0.5rem 1rem; border-top: 1px solid #1a1a1a; flex-shrink: 0; gap: 0.5rem; }
-    .console-prompt { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--accent); white-space: nowrap; }
-    .console-input { flex: 1; background: none; border: none; outline: none; color: var(--console-fg); font-family: 'Space Mono', monospace; font-size: 0.78rem; }
-    .console-input::placeholder { color: #333; }
-    .console-send { background: none; border: 1px solid #2a2a2a; color: var(--muted); padding: 0.3rem 0.7rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; transition: all 0.15s; }
+    .console-input-row { display: flex; align-items: center; padding: 0.45rem 1rem; border-top: 1px solid #1a1a1a; flex-shrink: 0; gap: 0.5rem; }
+    .console-prompt { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); white-space: nowrap; }
+    .console-input { flex: 1; background: none; border: none; outline: none; color: #c8ffc8; font-family: 'Space Mono', monospace; font-size: 0.75rem; }
+    .console-send { background: none; border: 1px solid #2a2a2a; color: var(--muted); padding: 0.25rem 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; }
     .console-send:hover { border-color: var(--accent); color: var(--accent); }
     .console-send:disabled { opacity: 0.3; cursor: not-allowed; }
 
@@ -150,18 +168,14 @@
     .pw-form input { background: var(--bg); border: 1px solid var(--border); color: var(--fg); padding: 0.4rem 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; outline: none; width: 160px; }
     .pw-form input:focus { border-color: var(--accent); }
     .pw-form-btns { display: flex; gap: 0.3rem; }
-
-    /* DEVICE ACCESS */
     .device-access-row { padding: 0.75rem 0; border-bottom: 1px solid #1a1a1a; }
     .device-access-row:last-child { border-bottom: none; }
     .device-access-name { font-family: 'Space Mono', monospace; font-size: 0.8rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
-    .device-access-name .online-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); display: inline-block; }
-    .device-access-name .offline-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--danger); display: inline-block; }
+    .online-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); display: inline-block; }
+    .offline-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--danger); display: inline-block; }
     .user-toggles { display: flex; flex-wrap: wrap; gap: 0.4rem; }
     .user-toggle { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.2rem 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.62rem; cursor: pointer; transition: all 0.15s; }
     .user-toggle.on { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,0.05); }
-
-    /* LOGS */
     .log-filters { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
     .filter-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0.7rem; font-family: 'Space Mono', monospace; font-size: 0.68rem; cursor: pointer; transition: all 0.15s; letter-spacing: 0.08em; }
     .filter-btn.active { border-color: var(--accent); color: var(--accent); }
@@ -173,7 +187,20 @@
     .log-table td.event { color: var(--muted); }
     .log-table td.detail { color: #3a3a3a; font-size: 0.68rem; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* MODALS */
+    /* POPUP SENDER MODAL */
+    #popup-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500; display: none; align-items: center; justify-content: center; }
+    #popup-modal.open { display: flex; }
+    .popup-box { background: var(--card); border: 1px solid var(--border); padding: 2rem; width: 100%; max-width: 380px; }
+    .popup-box h3 { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--accent); letter-spacing: 0.12em; margin-bottom: 1.25rem; }
+    .popup-field { margin-bottom: 0.9rem; }
+    .popup-field label { display: block; font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.35rem; }
+    .popup-field input, .popup-field textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--fg); padding: 0.6rem 0.9rem; font-family: 'Space Mono', monospace; font-size: 0.82rem; outline: none; transition: border-color 0.2s; resize: vertical; }
+    .popup-field input:focus, .popup-field textarea:focus { border-color: var(--accent); }
+    .popup-btns { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+    .btn-send-popup { flex: 1; background: var(--accent); color: var(--bg); border: none; padding: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+    .btn-send-popup:hover { background: #d4eb3a; }
+
+    /* KILL MODAL */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
     .modal { background: var(--card); border: 1px solid var(--border); padding: 2rem; width: 100%; max-width: 360px; transform: translateY(10px); transition: transform 0.2s; }
@@ -184,10 +211,10 @@
     .modal-btns { display: flex; gap: 0.75rem; }
     .btn-cancel { flex: 1; background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
     .btn-cancel:hover { border-color: var(--fg); color: var(--fg); }
-    .btn-confirm-danger { flex: 1; background: var(--danger); border: none; color: #fff; padding: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .btn-confirm-danger { flex: 1; background: var(--danger); border: none; color: #fff; padding: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
     .btn-confirm-danger:hover { background: #e03333; }
 
-    /* SCREEN */
+    /* SCREEN VIEWER */
     #screen-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 400; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
     #screen-modal.open { display: flex; }
     .screen-header { width: 100%; max-width: 1300px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--muted); }
@@ -195,28 +222,6 @@
     #screen-placeholder { color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.8rem; }
 
     /* MISC */
-    /* POWER MENU */
-    #power-menu { position: fixed; z-index: 500; background: var(--card); border: 1px solid var(--border); display: none; min-width: 180px; }
-    #power-menu.open { display: block; }
-    .power-item { display: flex; align-items: center; gap: 0.75rem; width: 100%; background: none; border: none; border-bottom: 1px solid #1a1a1a; color: var(--fg); padding: 0.7rem 1rem; font-family: "Space Mono", monospace; font-size: 0.75rem; cursor: pointer; transition: background 0.15s; text-align: left; letter-spacing: 0.06em; }
-    .power-item:last-child { border-bottom: none; }
-    .power-item:hover { background: #1a1a1a; }
-    .power-item.danger:hover { color: var(--danger); }
-    .power-item.warn:hover { color: var(--warn, #ffaa47); }
-    .power-item.safe:hover { color: var(--success); }
-    /* POPUP MODAL */
-    #popup-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500; display: none; align-items: center; justify-content: center; }
-    #popup-modal.open { display: flex; }
-    .popup-box { background: var(--card); border: 1px solid var(--border); padding: 2rem; width: 100%; max-width: 400px; }
-    .popup-box h3 { font-family: "Space Mono", monospace; font-size: 0.82rem; color: var(--accent); letter-spacing: 0.12em; margin-bottom: 1.25rem; }
-    .popup-field { margin-bottom: 0.9rem; }
-    .popup-field label { display: block; font-family: "Space Mono", monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.35rem; }
-    .popup-field input, .popup-field textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--fg); padding: 0.6rem 0.9rem; font-family: "Space Mono", monospace; font-size: 0.82rem; outline: none; transition: border-color 0.2s; resize: vertical; }
-    .popup-field input:focus, .popup-field textarea:focus { border-color: var(--accent); }
-    .popup-btns { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
-    .btn-send-popup { flex: 1; background: var(--accent); color: var(--bg); border: none; padding: 0.6rem; font-family: "Space Mono", monospace; font-size: 0.75rem; font-weight: 700; cursor: pointer; letter-spacing: 0.08em; }
-    .btn-send-popup:hover { background: #d4eb3a; }
-    /* TOAST */ 
     .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 0.8rem 1.2rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; z-index: 600; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.error { border-left-color: var(--danger); }
@@ -224,37 +229,7 @@
     .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 0.5rem; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes blink { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(71,255,138,0.4);}50%{opacity:.8;box-shadow:0 0 0 4px rgba(71,255,138,0);} }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
-
-    /* POWER MENU */
-    .power-wrap { position: relative; }
-    .power-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 0.7rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; transition: all 0.2s; line-height: 1; }
-    .power-btn:hover { border-color: var(--danger); color: var(--danger); }
-    .power-btn.frozen { border-color: #47aaff; color: #47aaff; animation: pulse-blue 1.5s infinite; }
-    @keyframes pulse-blue { 0%,100%{opacity:1} 50%{opacity:0.5} }
-    .power-menu { position: absolute; top: calc(100% + 6px); right: 0; background: var(--card); border: 1px solid var(--border); min-width: 160px; z-index: 200; display: none; }
-    .power-menu.open { display: block; animation: fadeUp 0.15s ease; }
-    .power-item { display: flex; align-items: center; gap: 0.6rem; width: 100%; background: none; border: none; border-bottom: 1px solid #1a1a1a; color: var(--fg); padding: 0.55rem 0.9rem; font-family: 'Space Mono', monospace; font-size: 0.7rem; cursor: pointer; text-align: left; transition: background 0.1s; letter-spacing: 0.05em; }
-    .power-item:last-child { border-bottom: none; }
-    .power-item:hover { background: #1a1a1a; }
-    .power-item.danger:hover { color: var(--danger); }
-    .power-item.warn:hover   { color: #ffaa47; }
-    .power-item.info:hover   { color: #47aaff; }
-    .power-item.accent:hover { color: var(--accent); }
-    .power-sep { border-bottom: 1px solid var(--border) !important; padding: 0 !important; height: 0; }
-
-    /* POPUP MODAL */
-    #popup-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500; display: none; align-items: center; justify-content: center; }
-    #popup-modal.open { display: flex; }
-    .popup-box { background: var(--card); border: 1px solid var(--border); padding: 2rem; width: 100%; max-width: 380px; }
-    .popup-box h3 { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 1rem; }
-    .popup-field { margin-bottom: 0.75rem; }
-    .popup-field label { display: block; font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.35rem; }
-    .popup-field input, .popup-field textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--fg); padding: 0.6rem 0.8rem; font-family: 'Space Mono', monospace; font-size: 0.8rem; outline: none; transition: border-color 0.2s; resize: vertical; }
-    .popup-field input:focus, .popup-field textarea:focus { border-color: var(--accent); }
-    .popup-btns { display: flex; gap: 0.75rem; margin-top: 1rem; }
-    .btn-send-popup { flex: 1; background: var(--accent); color: var(--bg); border: none; padding: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
-    .btn-send-popup:hover { background: #d4eb3a; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);} }
     @media (max-width:600px) { nav{padding:1rem 1.2rem;} .dash-header,.page-body{padding:1rem 1.2rem;} .proc-table td.user,.proc-table th:nth-child(5){display:none;} }
   </style>
 </head>
@@ -296,26 +271,28 @@
 <!-- PROCESSES -->
 <div id="page-processes" class="page dash-page">
   <div class="page-body">
+    <!-- Header row: back + title + popup + freeze badge + power -->
     <div class="proc-header">
       <button class="btn-back" id="btn-back">← DEVICES</button>
       <div class="proc-title">// <span id="proc-device-name">DEVICE</span></div>
-      <div style="margin-left:auto;display:flex;gap:0.5rem;align-items:center">
-        <button class="toolbar-btn" id="btn-popup-open" style="display:none">💬 POPUP</button>
-        <span id="freeze-status" style="display:none;font-family:Space Mono,monospace;font-size:0.65rem;color:#47aaff;letter-spacing:0.1em">❄ FROZEN</span>
-        <div class="power-wrap" id="power-wrap" style="display:none">
-          <button class="power-btn" id="btn-power" title="Power options">⏻</button>
-          <div class="power-menu" id="power-menu">
-            <button class="power-item warn" data-action="restart">↺  RESTART</button>
-            <button class="power-item danger" data-action="shutdown">⏻  SHUTDOWN</button>
-            <button class="power-item accent" data-action="signout">→  SIGN OUT</button>
-            <div class="power-sep"></div>
-            <button class="power-item info" id="btn-freeze-toggle">❄  FREEZE</button>
-            <div class="power-sep"></div>
-            <button class="power-item" data-action="cancel_shutdown">✕  CANCEL SHUTDOWN</button>
-          </div>
+      <span id="freeze-badge" style="display:none;font-family:Space Mono,monospace;font-size:0.62rem;color:var(--info);letter-spacing:0.1em">❄ FROZEN</span>
+      <!-- popup button (admin only) -->
+      <button class="toolbar-btn" id="btn-popup-open" style="display:none">💬 POPUP</button>
+      <!-- power menu (admin only) -->
+      <div class="power-wrap" id="power-wrap" style="display:none">
+        <button class="power-btn" id="btn-power">⏻ POWER</button>
+        <div class="power-dropdown" id="power-dropdown">
+          <button class="power-item warn"   data-action="restart">↺  RESTART</button>
+          <button class="power-item danger" data-action="shutdown">⏻  SHUTDOWN</button>
+          <button class="power-item accent" data-action="signout">→  SIGN OUT</button>
+          <div class="power-sep"></div>
+          <button class="power-item info"   id="btn-freeze-toggle">❄  FREEZE</button>
+          <div class="power-sep"></div>
+          <button class="power-item"        data-action="cancel_shutdown">✕  CANCEL SHUTDOWN</button>
         </div>
       </div>
     </div>
+    <!-- Toolbar row -->
     <div class="proc-toolbar">
       <div class="search-wrap"><input type="text" id="proc-search" placeholder="Search processes..."/></div>
       <span class="proc-count" id="proc-count"></span>
@@ -342,15 +319,28 @@
 <!-- CONSOLE PANEL -->
 <div id="console-panel">
   <div class="console-header">
-    <span>PS <span class="console-device" id="console-device-name"></span>&gt;</span>
+    <span class="console-title">PS <span id="console-device-name"></span>&gt;</span>
     <button class="console-close" id="btn-close-console">✕ CLOSE</button>
   </div>
-  <div class="console-output" id="console-output"><span style="color:var(--muted)">PowerShell console ready. Type a command below.</span>
+  <div class="console-output" id="console-output"><span style="color:var(--muted)">PowerShell ready. Type a command below.</span>
 </div>
   <div class="console-input-row">
     <span class="console-prompt">PS&gt;</span>
-    <input class="console-input" id="console-input" type="text" placeholder="Enter PowerShell command..." spellcheck="false" autocomplete="off"/>
+    <input class="console-input" id="console-input" type="text" placeholder="Enter command..." spellcheck="false" autocomplete="off"/>
     <button class="console-send" id="btn-console-send">RUN</button>
+  </div>
+</div>
+
+<!-- POPUP SENDER MODAL -->
+<div id="popup-modal">
+  <div class="popup-box">
+    <h3>💬 SEND POPUP</h3>
+    <div class="popup-field"><label>Title</label><input type="text" id="popup-title" placeholder="Message title" maxlength="100"/></div>
+    <div class="popup-field"><label>Message</label><textarea id="popup-message" rows="3" placeholder="Message body..." maxlength="500"></textarea></div>
+    <div class="popup-btns">
+      <button class="btn-cancel" id="btn-popup-cancel">CANCEL</button>
+      <button class="btn-send-popup" id="btn-popup-send">SEND TO DEVICE</button>
+    </div>
   </div>
 </div>
 
@@ -362,17 +352,8 @@
     <button class="nav-btn" id="btn-close-admin">✕ CLOSE</button>
   </div>
   <div class="admin-panel-body">
-
-    <div class="admin-card">
-      <h3>User Accounts</h3>
-      <div id="users-wrap"><div class="empty-state"><span class="spinner"></span>Loading...</div></div>
-    </div>
-
-    <div class="admin-card">
-      <h3>Device Access</h3>
-      <div id="admin-devices-wrap"><div class="empty-state"><span class="spinner"></span>Loading...</div></div>
-    </div>
-
+    <div class="admin-card"><h3>User Accounts</h3><div id="users-wrap"><div class="empty-state"><span class="spinner"></span>Loading...</div></div></div>
+    <div class="admin-card"><h3>Device Access</h3><div id="admin-devices-wrap"><div class="empty-state"><span class="spinner"></span>Loading...</div></div></div>
     <div class="admin-card">
       <h3>Login Logs</h3>
       <div class="log-filters">
@@ -382,29 +363,8 @@
       </div>
       <div id="logs-wrap"><div class="empty-state"><span class="spinner"></span>Loading...</div></div>
     </div>
-
   </div>
 </div>
-
-<!-- POPUP MODAL -->
-<div id="popup-modal">
-  <div class="popup-box">
-    <h3>💬 SEND POPUP</h3>
-    <div class="popup-field">
-      <label>Title</label>
-      <input type="text" id="popup-title" placeholder="Message title" maxlength="100"/>
-    </div>
-    <div class="popup-field">
-      <label>Message</label>
-      <textarea id="popup-message" rows="3" placeholder="Message body..." maxlength="500"></textarea>
-    </div>
-    <div class="popup-btns">
-      <button class="btn-cancel" id="btn-popup-cancel">CANCEL</button>
-      <button class="btn-send-popup" id="btn-popup-send">SEND TO DEVICE</button>
-    </div>
-  </div>
-</div>
-
 
 <!-- KILL MODAL -->
 <div class="modal-overlay" id="kill-modal">
@@ -418,7 +378,7 @@
   </div>
 </div>
 
-<!-- SCREEN MODAL -->
+<!-- SCREEN VIEWER -->
 <div id="screen-modal">
   <div class="screen-header">
     <span>SCREEN — <span id="screen-device-label"></span></span>
@@ -438,21 +398,16 @@
 
   let authToken     = sessionStorage.getItem('ctrl_token') || null;
   let userRole      = sessionStorage.getItem('ctrl_role')  || null;
-  let userName      = sessionStorage.getItem('ctrl_user')  || null;
   let permissions   = JSON.parse(sessionStorage.getItem('ctrl_perms') || '[]');
   let currentDevice = null;
   let allProcesses  = [];
   let sortCol = 'cpu', sortAsc = false;
   let pollTimer = null, screenTimer = null, pendingKill = null;
   let logDays = 1;
+  let consoleOpen = false, consoleBusy = false, cmdHistory = [], historyIdx = -1;
   let deviceFrozen = false;
-  let consoleOpen   = false;
-  let consoleBusy   = false;
-  let cmdHistory    = [];
-  let historyIdx    = -1;
-  const collapsed   = { focused: false, user: false, background: false };
-  let allDeviceList = []; // cached for admin access panel
-  let allUserList   = []; // cached for admin access panel
+  let allDeviceList = [], allUserList = [];
+  const collapsed = { focused: false, user: false, background: false };
 
   const can = p => permissions.includes(p);
 
@@ -465,16 +420,13 @@
 
   function toast(msg, isError = false) {
     const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = 'toast show' + (isError ? ' error' : '');
-    clearTimeout(el._t);
-    el._t = setTimeout(() => el.classList.remove('show'), 3000);
+    el.textContent = msg; el.className = 'toast show' + (isError ? ' error' : '');
+    clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 3000);
   }
 
   async function api(path, opts = {}) {
     const res = await fetch(API + path, {
-      ...opts,
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken, ...(opts.headers||{}) }
+      ...opts, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken, ...(opts.headers||{}) }
     });
     if (res.status === 401) { doLogout(); return null; }
     return res;
@@ -492,41 +444,30 @@
       const res  = await fetch(API+'/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:user,password:pass}) });
       const data = await res.json();
       if (res.ok && data.token) {
-        authToken   = data.token;
-        userRole    = data.role;
-        userName    = data.username;
-        permissions = data.permissions || [];
+        authToken = data.token; userRole = data.role; permissions = data.permissions || [];
         sessionStorage.setItem('ctrl_token', authToken);
         sessionStorage.setItem('ctrl_role',  userRole);
-        sessionStorage.setItem('ctrl_user',  userName);
         sessionStorage.setItem('ctrl_perms', JSON.stringify(permissions));
-        document.getElementById('nav-role').textContent  = userRole.toUpperCase();
+        document.getElementById('nav-role').textContent = userRole.toUpperCase();
         document.getElementById('btn-admin').style.display = can('manage_users') ? 'block' : 'none';
-        showPage('page-devices');
-        loadDevices();
-      } else {
-        err.textContent = data.error || 'Invalid credentials.';
-      }
+        showPage('page-devices'); loadDevices();
+      } else { err.textContent = data.error || 'Invalid credentials.'; }
     } catch(e) { err.textContent = 'Cannot reach server. Is the Pi online?'; }
     btn.disabled = false; btn.textContent = 'ENTER';
   }
 
   function doLogout() {
-    authToken = userRole = userName = null; permissions = [];
-    sessionStorage.clear();
-    clearInterval(pollTimer); stopScreenPolling(); closeConsole(); closeAdmin();
-    showPage('page-login');
-    document.getElementById('login-pass').value = '';
+    authToken = userRole = null; permissions = [];
+    sessionStorage.clear(); clearInterval(pollTimer); stopScreenPolling(); closeConsole(); closeAdmin();
+    showPage('page-login'); document.getElementById('login-pass').value = '';
   }
 
   // ── DEVICES ──────────────────────────────────────────────────
   async function loadDevices() {
     const grid = document.getElementById('device-grid');
     try {
-      const res     = await api('/devices');
-      if (!res) return;
-      const devices = await res.json();
-      allDeviceList = devices;
+      const res = await api('/devices'); if (!res) return;
+      const devices = await res.json(); allDeviceList = devices;
       if (!devices.length) { grid.innerHTML = '<div class="empty-state">No devices visible to your account.</div>'; return; }
       grid.innerHTML = devices.map(d => `
         <div class="device-card ${d.online?'':'offline'}" data-id="${d.id}">
@@ -540,27 +481,23 @@
           </div>
         </div>`).join('');
       grid.querySelectorAll('.device-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const dev = devices.find(d => d.id === card.dataset.id);
-          if (dev) openDevice(dev);
-        });
+        card.addEventListener('click', () => { const dev = devices.find(d=>d.id===card.dataset.id); if(dev) openDevice(dev); });
       });
-      document.getElementById('devices-subtitle').textContent =
-        devices.filter(d=>d.online).length + ' OF ' + devices.length + ' VISIBLE';
+      document.getElementById('devices-subtitle').textContent = devices.filter(d=>d.online).length+' OF '+devices.length+' VISIBLE';
     } catch(e) { grid.innerHTML = '<div class="empty-state">Failed to load devices.</div>'; }
   }
 
-  // ── PROCESSES ────────────────────────────────────────────────
+  // ── OPEN DEVICE ───────────────────────────────────────────────
   function openDevice(dev) {
     currentDevice = dev;
-    deviceFrozen = dev.frozen || false;
-    document.getElementById('proc-device-name').textContent = dev.name.toUpperCase();
-    document.getElementById('btn-screen').style.display   = can('view_screen')    ? 'block' : 'none';
-    document.getElementById('btn-console').style.display  = can('console')        ? 'block' : 'none';
-    document.getElementById('action-col').style.display   = can('end_tasks')      ? ''      : 'none';
-    document.getElementById('power-wrap').style.display   = can('manage_devices') ? 'block' : 'none';
-    document.getElementById('btn-popup-open').style.display = can('manage_devices') ? 'block' : 'none';
+    deviceFrozen  = dev.frozen || false;
+    document.getElementById('proc-device-name').textContent    = dev.name.toUpperCase();
     document.getElementById('console-device-name').textContent = dev.name;
+    document.getElementById('btn-screen').style.display    = can('view_screen')    ? 'block' : 'none';
+    document.getElementById('btn-console').style.display   = can('console')        ? 'block' : 'none';
+    document.getElementById('btn-popup-open').style.display= can('manage_devices') ? 'block' : 'none';
+    document.getElementById('power-wrap').style.display    = can('manage_devices') ? 'block' : 'none';
+    document.getElementById('action-col').style.display    = can('end_tasks')      ? ''      : 'none';
     updateFreezeUI();
     showPage('page-processes');
     loadProcesses();
@@ -569,88 +506,70 @@
   }
 
   function updateFreezeUI() {
-    const btn    = document.getElementById('btn-freeze-toggle');
-    const status = document.getElementById('freeze-status');
-    const power  = document.getElementById('btn-power');
+    const badge = document.getElementById('freeze-badge');
+    const btn   = document.getElementById('btn-freeze-toggle');
+    const pbtn  = document.getElementById('btn-power');
     if (deviceFrozen) {
-      btn.textContent = '▶  UNFREEZE';
-      status.style.display = 'inline';
-      power.classList.add('frozen');
+      badge.style.display = 'inline'; btn.textContent = '▶  UNFREEZE';
+      pbtn.classList.add('frozen'); pbtn.textContent = '❄ FROZEN';
     } else {
-      btn.textContent = '❄  FREEZE';
-      status.style.display = 'none';
-      power.classList.remove('frozen');
+      badge.style.display = 'none'; btn.textContent = '❄  FREEZE';
+      pbtn.classList.remove('frozen'); pbtn.textContent = '⏻ POWER';
     }
   }
 
+  // ── PROCESSES ────────────────────────────────────────────────
   async function loadProcesses() {
     if (!currentDevice) return;
     try {
-      const res = await api('/devices/'+currentDevice.id+'/processes');
-      if (!res) return;
-      allProcesses = await res.json();
-      renderProcesses();
+      const res = await api('/devices/'+currentDevice.id+'/processes'); if (!res) return;
+      allProcesses = await res.json(); renderProcesses();
     } catch(e) { toast('Failed to fetch processes', true); }
   }
 
   function sortGroup(arr) {
     return [...arr].sort((a,b) => {
-      let av = a[sortCol]??'', bv = b[sortCol]??'';
-      if (typeof av==='string') { av=av.toLowerCase(); bv=bv.toLowerCase(); }
+      let av=a[sortCol]??'', bv=b[sortCol]??'';
+      if(typeof av==='string'){av=av.toLowerCase();bv=bv.toLowerCase();}
       return sortAsc?(av>bv?1:-1):(av<bv?1:-1);
     });
   }
 
   function makeSeparator(label, count, cat) {
     const arrow = collapsed[cat]?'▶':'▼';
-    return `<tr class="category-row" data-toggle="${cat}">
-      <td colspan="6"><span style="margin-right:0.5rem;font-size:0.6rem">${arrow}</span>${label} <span style="color:#333">(${count})</span>${collapsed[cat]?'<span style="color:#333;margin-left:0.75rem;font-size:0.6rem">COLLAPSED</span>':''}</td>
-    </tr>`;
+    return `<tr class="category-row" data-toggle="${cat}"><td colspan="6"><span style="margin-right:0.5rem;font-size:0.6rem">${arrow}</span>${label} <span style="color:#333">(${count})</span>${collapsed[cat]?'<span style="color:#333;margin-left:0.75rem;font-size:0.6rem">COLLAPSED</span>':''}</td></tr>`;
   }
 
   function makeRows(arr, cat) {
     if (collapsed[cat]) return '';
     const showKill = can('end_tasks');
-    return arr.map(p=>`
-      <tr>
-        <td title="${p.name}">${p.name}</td>
-        <td class="pid">${p.pid}</td>
-        <td class="cpu ${p.cpu>20?'high':''}">${p.cpu.toFixed(1)}%</td>
-        <td class="mem">${p.mem_mb.toFixed(0)}</td>
-        <td class="user">${p.user||'—'}</td>
-        ${showKill?`<td><button class="kill-btn" data-pid="${p.pid}" data-name="${p.name}">END</button></td>`:'<td style="display:none"></td>'}
-      </tr>`).join('');
+    return arr.map(p=>`<tr>
+      <td title="${p.name}">${p.name}</td>
+      <td class="pid">${p.pid}</td>
+      <td class="cpu ${p.cpu>20?'high':''}">${p.cpu.toFixed(1)}%</td>
+      <td class="mem">${p.mem_mb.toFixed(0)}</td>
+      <td class="user">${p.user||'—'}</td>
+      ${showKill?`<td><button class="kill-btn" data-pid="${p.pid}" data-name="${p.name}">END</button></td>`:'<td style="display:none"></td>'}
+    </tr>`).join('');
   }
 
   function renderProcesses() {
-    const q        = document.getElementById('proc-search').value.toLowerCase();
-    const filtered = allProcesses.filter(p=>
-      p.name.toLowerCase().includes(q)||String(p.pid).includes(q)||(p.user||'').toLowerCase().includes(q)
-    );
+    const q = document.getElementById('proc-search').value.toLowerCase();
+    const filtered = allProcesses.filter(p=>p.name.toLowerCase().includes(q)||String(p.pid).includes(q)||(p.user||'').toLowerCase().includes(q));
     const focused    = sortGroup(filtered.filter(p=>p.category==='focused'));
     const user       = sortGroup(filtered.filter(p=>p.category==='user'));
     const background = sortGroup(filtered.filter(p=>p.category==='background'));
-
     document.getElementById('proc-count').textContent = filtered.length+' / '+allProcesses.length+' PROCESSES';
     const tbody = document.getElementById('proc-tbody');
-    if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--muted);font-family:Space Mono,monospace;font-size:0.8rem;">No matching processes.</td></tr>';
-      return;
-    }
+    if (!filtered.length) { tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:3rem;color:var(--muted);font-family:Space Mono,monospace;font-size:0.8rem;">No matching processes.</td></tr>'; return; }
     let html = '';
     if (focused.length)    html += makeSeparator('⬤ Focused', focused.length, 'focused')         + makeRows(focused, 'focused');
     if (user.length)       html += makeSeparator('◈ User Processes', user.length, 'user')         + makeRows(user, 'user');
     if (background.length) html += makeSeparator('◌ Background', background.length, 'background') + makeRows(background, 'background');
     tbody.innerHTML = html;
-    tbody.querySelectorAll('.kill-btn').forEach(btn=>
-      btn.addEventListener('click',()=>showKillModal(btn.dataset.pid, btn.dataset.name))
-    );
-    tbody.querySelectorAll('.category-row[data-toggle]').forEach(row=>
-      row.addEventListener('click',()=>{ collapsed[row.dataset.toggle]=!collapsed[row.dataset.toggle]; renderProcesses(); })
-    );
-    document.querySelectorAll('.proc-table thead th[data-col]').forEach(th=>
-      th.classList.toggle('sorted', th.dataset.col===sortCol)
-    );
+    tbody.querySelectorAll('.kill-btn').forEach(btn=>btn.addEventListener('click',()=>showKillModal(btn.dataset.pid,btn.dataset.name)));
+    tbody.querySelectorAll('.category-row[data-toggle]').forEach(row=>row.addEventListener('click',()=>{collapsed[row.dataset.toggle]=!collapsed[row.dataset.toggle];renderProcesses();}));
+    document.querySelectorAll('.proc-table thead th[data-col]').forEach(th=>th.classList.toggle('sorted',th.dataset.col===sortCol));
   }
 
   // ── KILL MODAL ───────────────────────────────────────────────
@@ -661,15 +580,13 @@
     document.getElementById('modal-device-name').textContent = currentDevice.name;
     document.getElementById('kill-modal').classList.add('open');
   }
-
   async function confirmKill() {
     if (!pendingKill) return;
     document.getElementById('kill-modal').classList.remove('open');
     try {
-      const res = await api('/devices/'+currentDevice.id+'/kill', { method:'POST', body: JSON.stringify({pid:parseInt(pendingKill.pid)}) });
-      if (res && res.ok) { toast('Killed '+pendingKill.name); setTimeout(loadProcesses, 800); }
-      else toast('Failed to kill process', true);
-    } catch(e) { toast('Error', true); }
+      const res = await api('/devices/'+currentDevice.id+'/kill',{method:'POST',body:JSON.stringify({pid:parseInt(pendingKill.pid)})});
+      if(res&&res.ok){toast('Killed '+pendingKill.name);setTimeout(loadProcesses,800);}else toast('Failed',true);
+    } catch(e){toast('Error',true);}
     pendingKill = null;
   }
 
@@ -677,12 +594,9 @@
   function openScreenModal() {
     document.getElementById('screen-device-label').textContent = currentDevice.name.toUpperCase();
     document.getElementById('screen-modal').classList.add('open');
-    fetchScreen();
-    screenTimer = setInterval(fetchScreen, 2000);
+    fetchScreen(); screenTimer = setInterval(fetchScreen, 2000);
   }
-
   function stopScreenPolling() { clearInterval(screenTimer); screenTimer = null; }
-
   async function fetchScreen() {
     if (!currentDevice) return;
     try {
@@ -691,87 +605,65 @@
       const data = await res.json();
       if (data.screenshot) {
         const img = document.getElementById('screen-img');
-        img.src = 'data:image/jpeg;base64,'+data.screenshot;
-        img.style.display = 'block';
-        document.getElementById('screen-placeholder').style.display = 'none';
+        img.src = 'data:image/jpeg;base64,'+data.screenshot; img.style.display='block';
+        document.getElementById('screen-placeholder').style.display='none';
         document.getElementById('screen-ts').textContent = new Date(data.timestamp*1000).toLocaleTimeString();
       }
-    } catch(e) {}
+    } catch(e){}
   }
 
   // ── CONSOLE ──────────────────────────────────────────────────
   function openConsole() {
-    consoleOpen = true;
-    document.getElementById('console-panel').classList.add('open');
+    consoleOpen=true; document.getElementById('console-panel').classList.add('open');
     document.getElementById('btn-console').classList.add('active');
-    setTimeout(()=>document.getElementById('console-input').focus(), 350);
+    setTimeout(()=>document.getElementById('console-input').focus(),350);
   }
-
   function closeConsole() {
-    consoleOpen = false;
-    document.getElementById('console-panel').classList.remove('open');
+    consoleOpen=false; document.getElementById('console-panel').classList.remove('open');
     document.getElementById('btn-console').classList.remove('active');
   }
-
   function appendConsole(text, cls) {
-    const out  = document.getElementById('console-output');
-    const line = document.createElement('div');
-    if (cls) line.className = cls;
-    line.textContent = text;
-    out.appendChild(line);
-    out.scrollTop = out.scrollHeight;
+    const out=document.getElementById('console-output');
+    const line=document.createElement('div'); if(cls)line.className=cls;
+    line.textContent=text; out.appendChild(line); out.scrollTop=out.scrollHeight;
   }
-
   async function runConsoleCommand() {
-    const input = document.getElementById('console-input');
-    const btn   = document.getElementById('btn-console-send');
-    const cmd   = input.value.trim();
-    if (!cmd || consoleBusy) return;
-
-    cmdHistory.unshift(cmd);
-    historyIdx = -1;
-    input.value = '';
-    consoleBusy = true;
-    btn.disabled = true;
-
-    appendConsole('PS> ' + cmd, 'line-cmd');
-    appendConsole('Running...', 'line-wait');
-
+    const input=document.getElementById('console-input');
+    const btn=document.getElementById('btn-console-send');
+    const cmd=input.value.trim();
+    if(!cmd||consoleBusy) return;
+    cmdHistory.unshift(cmd); historyIdx=-1; input.value='';
+    consoleBusy=true; btn.disabled=true;
+    appendConsole('PS> '+cmd,'line-cmd'); appendConsole('Running...','line-wait');
     try {
-      const res  = await api('/devices/'+currentDevice.id+'/console', { method:'POST', body: JSON.stringify({cmd}) });
-      if (!res || !res.ok) { appendConsole('[ERROR] Failed to send command.', 'line-err'); consoleBusy=false; btn.disabled=false; return; }
-      const data = await res.json();
-      const cmdId = data.cmd_id;
-
-      // Poll for result
-      let attempts = 0;
-      const poll = setInterval(async () => {
+      const res=await api('/devices/'+currentDevice.id+'/console',{method:'POST',body:JSON.stringify({cmd})});
+      if(!res||!res.ok){appendConsole('[ERROR] Failed to send.','line-err');consoleBusy=false;btn.disabled=false;return;}
+      const {cmd_id}=await res.json();
+      let attempts=0;
+      const poll=setInterval(async()=>{
         attempts++;
         try {
-          const r = await api('/devices/'+currentDevice.id+'/console/'+cmdId);
-          if (!r) { clearInterval(poll); consoleBusy=false; btn.disabled=false; return; }
-          const d = await r.json();
-          if (d.ready) {
+          const r=await api('/devices/'+currentDevice.id+'/console/'+cmd_id);
+          if(!r){clearInterval(poll);consoleBusy=false;btn.disabled=false;return;}
+          const d=await r.json();
+          if(d.ready){
             clearInterval(poll);
-            // Remove "Running..." line
-            const out = document.getElementById('console-output');
-            const waiting = out.querySelector('.line-wait');
-            if (waiting) waiting.remove();
-            appendConsole(d.output, '');
-            appendConsole('', '');
-            consoleBusy = false;
-            btn.disabled = false;
-            input.focus();
-          } else if (attempts > 20) {
-            clearInterval(poll);
-            appendConsole('[TIMEOUT] No response after 40s.', 'line-err');
-            consoleBusy = false;
-            btn.disabled = false;
-          }
-        } catch(e) { clearInterval(poll); consoleBusy=false; btn.disabled=false; }
-      }, 2000);
+            document.getElementById('console-output').querySelector('.line-wait')?.remove();
+            appendConsole(d.output,''); appendConsole('','');
+            consoleBusy=false; btn.disabled=false; input.focus();
+          } else if(attempts>20){clearInterval(poll);appendConsole('[TIMEOUT]','line-err');consoleBusy=false;btn.disabled=false;}
+        } catch(e){clearInterval(poll);consoleBusy=false;btn.disabled=false;}
+      },2000);
+    } catch(e){appendConsole('[ERROR] '+e,'line-err');consoleBusy=false;btn.disabled=false;}
+  }
 
-    } catch(e) { appendConsole('[ERROR] '+e, 'line-err'); consoleBusy=false; btn.disabled=false; }
+  // ── POWER ACTIONS ────────────────────────────────────────────
+  async function sendAction(type, extra={}) {
+    try {
+      const res = await api('/devices/'+currentDevice.id+'/action',{method:'POST',body:JSON.stringify({type,...extra})});
+      if(res&&res.ok) return true;
+      const d=await res.json().catch(()=>({})); toast(d.error||'Action failed',true); return false;
+    } catch(e){toast('Error',true);return false;}
   }
 
   // ── ADMIN ────────────────────────────────────────────────────
@@ -779,33 +671,23 @@
     document.getElementById('admin-panel').classList.add('open');
     document.getElementById('admin-overlay').classList.add('open');
     document.getElementById('btn-admin').classList.add('active');
-    loadAdminUsers();
-    loadAdminDevices();
-    loadLogs();
+    loadAdminUsers(); loadAdminDevices(); loadLogs();
   }
-
   function closeAdmin() {
     document.getElementById('admin-panel').classList.remove('open');
     document.getElementById('admin-overlay').classList.remove('open');
     document.getElementById('btn-admin').classList.remove('active');
   }
-
   async function loadAdminUsers() {
-    const wrap = document.getElementById('users-wrap');
+    const wrap=document.getElementById('users-wrap');
     try {
-      const res   = await api('/admin/users');
-      if (!res) return;
-      allUserList = await res.json();
-      wrap.innerHTML = allUserList.map(u => `
+      const res=await api('/admin/users'); if(!res)return;
+      allUserList=await res.json();
+      wrap.innerHTML=allUserList.map(u=>`
         <div class="user-row">
-          <div class="user-info">
-            <div>${u.username}${u.locked?'<span class="user-locked">LOCKED</span>':''}</div>
-            <div class="role">${u.role.toUpperCase()}</div>
-          </div>
+          <div class="user-info"><div>${u.username}${u.locked?'<span class="user-locked">LOCKED</span>':''}</div><div class="role">${u.role.toUpperCase()}</div></div>
           <div class="user-actions">
-            <button class="small-btn ${u.locked?'success':'danger'}" onclick="toggleLockUser('${u.username}',${!u.locked})">
-              ${u.locked?'UNLOCK':'LOCK'}
-            </button>
+            <button class="small-btn ${u.locked?'success':'danger'}" onclick="toggleLockUser('${u.username}',${!u.locked})">${u.locked?'UNLOCK':'LOCK'}</button>
             <button class="small-btn" onclick="togglePwForm('${u.username}')">CHANGE PW</button>
             <div class="pw-form" id="pw-form-${u.username}">
               <input type="password" id="pw-input-${u.username}" placeholder="New password..." autocomplete="new-password"/>
@@ -816,99 +698,51 @@
             </div>
           </div>
         </div>`).join('');
-    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load users.</div>'; }
+    } catch(e){wrap.innerHTML='<div class="empty-state">Failed.</div>';}
   }
-
-  function togglePwForm(username) {
-    const form = document.getElementById('pw-form-'+username);
-    form.classList.toggle('open');
-    if (form.classList.contains('open')) {
-      document.getElementById('pw-input-'+username).focus();
-    }
+  function togglePwForm(u){const f=document.getElementById('pw-form-'+u);f.classList.toggle('open');if(f.classList.contains('open'))document.getElementById('pw-input-'+u).focus();}
+  async function submitPassword(u){
+    const pw=document.getElementById('pw-input-'+u).value.trim();if(!pw)return;
+    const res=await api('/admin/users/'+u+'/password',{method:'POST',body:JSON.stringify({password:pw})});
+    if(res&&res.ok){toast('Password updated for '+u);togglePwForm(u);}else toast('Failed',true);
   }
-
-  async function submitPassword(username) {
-    const input = document.getElementById('pw-input-'+username);
-    const pw    = input.value.trim();
-    if (!pw) return;
-    const res = await api('/admin/users/'+username+'/password', { method:'POST', body: JSON.stringify({password:pw}) });
-    if (res && res.ok) { toast('Password updated for '+username); togglePwForm(username); input.value=''; }
-    else { const d=await res.json(); toast(d.error||'Failed', true); }
+  async function toggleLockUser(u,lock){
+    const res=await api('/admin/users/'+u+'/lock',{method:'POST',body:JSON.stringify({locked:lock})});
+    if(res&&res.ok){toast(lock?u+' locked':u+' unlocked');loadAdminUsers();}else toast('Failed',true);
   }
-
-  async function toggleLockUser(username, lock) {
-    const res = await api('/admin/users/'+username+'/lock', { method:'POST', body: JSON.stringify({locked:lock}) });
-    if (res && res.ok) { toast(lock?username+' locked':username+' unlocked'); loadAdminUsers(); }
-    else toast('Failed', true);
-  }
-
-  async function loadAdminDevices() {
-    const wrap = document.getElementById('admin-devices-wrap');
-    try {
-      const devRes  = await api('/devices');
-      const userRes = await api('/admin/users');
-      if (!devRes||!userRes) return;
-      const devices = await devRes.json();
-      const users   = await userRes.json();
-      allDeviceList = devices;
-      allUserList   = users;
-
-      if (!devices.length) { wrap.innerHTML = '<div class="empty-state">No devices reporting in.</div>'; return; }
-
-      wrap.innerHTML = devices.map(d => {
-        const allowed = d.allowed_users || [];
-        const nonAdminUsers = users.filter(u => u.role !== 'admin');
-        const toggles = nonAdminUsers.map(u => `
-          <button class="user-toggle ${allowed.includes(u.username)?'on':''}"
-            onclick="toggleDeviceUser('${d.id}','${u.username}',this)">
-            ${u.username}
-          </button>`).join('');
-        return `<div class="device-access-row">
-          <div class="device-access-name">
-            <span class="${d.online?'online-dot':'offline-dot'}"></span>
-            ${d.name}
-          </div>
-          <div class="user-toggles" id="toggles-${d.id}">${toggles}</div>
-        </div>`;
+  async function loadAdminDevices(){
+    const wrap=document.getElementById('admin-devices-wrap');
+    try{
+      const devRes=await api('/devices'),userRes=await api('/admin/users');
+      if(!devRes||!userRes)return;
+      const devices=await devRes.json(),users=await userRes.json();
+      allDeviceList=devices; allUserList=users;
+      if(!devices.length){wrap.innerHTML='<div class="empty-state">No devices.</div>';return;}
+      wrap.innerHTML=devices.map(d=>{
+        const allowed=d.allowed_users||[];
+        const nonAdmin=users.filter(u=>u.role!=='admin');
+        const toggles=nonAdmin.map(u=>`<button class="user-toggle ${allowed.includes(u.username)?'on':''}" onclick="toggleDeviceUser('${d.id}','${u.username}',this)">${u.username}</button>`).join('');
+        return `<div class="device-access-row"><div class="device-access-name"><span class="${d.online?'online-dot':'offline-dot'}"></span>${d.name}</div><div class="user-toggles">${toggles}</div></div>`;
       }).join('');
-    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load.</div>'; }
+    }catch(e){wrap.innerHTML='<div class="empty-state">Failed.</div>';}
   }
-
-  async function toggleDeviceUser(deviceId, username, btn) {
-    const add   = !btn.classList.contains('on');
-    const dev   = allDeviceList.find(d=>d.id===deviceId);
-    if (!dev) return;
-    let allowed = [...(dev.allowed_users||[])];
-    if (add) { if (!allowed.includes(username)) allowed.push(username); }
-    else     { allowed = allowed.filter(u=>u!==username); }
-    const res = await api('/devices/'+deviceId+'/access', { method:'POST', body: JSON.stringify({allowed_users:allowed}) });
-    if (res && res.ok) {
-      dev.allowed_users = allowed;
-      btn.classList.toggle('on', add);
-      toast((add?'Granted ':'Revoked ')+username+' access to '+dev.name);
-    } else {
-      toast('Failed to update access', true);
-    }
+  async function toggleDeviceUser(deviceId,username,btn){
+    const add=!btn.classList.contains('on');
+    const dev=allDeviceList.find(d=>d.id===deviceId);if(!dev)return;
+    let allowed=[...(dev.allowed_users||[])];
+    if(add){if(!allowed.includes(username))allowed.push(username);}else{allowed=allowed.filter(u=>u!==username);}
+    const res=await api('/devices/'+deviceId+'/access',{method:'POST',body:JSON.stringify({allowed_users:allowed})});
+    if(res&&res.ok){dev.allowed_users=allowed;btn.classList.toggle('on',add);toast((add?'Granted ':'Revoked ')+username+' on '+dev.name);}else toast('Failed',true);
   }
-
-  async function loadLogs() {
-    const wrap = document.getElementById('logs-wrap');
-    wrap.innerHTML = '<div class="empty-state"><span class="spinner"></span>Loading...</div>';
-    try {
-      const res  = await api('/admin/logs?days='+logDays);
-      if (!res) return;
-      const logs = await res.json();
-      if (!logs.length) { wrap.innerHTML = '<div class="empty-state">No logs found.</div>'; return; }
-      wrap.innerHTML = `<table class="log-table">
-        <thead><tr><th>DATE</th><th>TIME</th><th>USER</th><th>EVENT</th><th>DETAIL</th></tr></thead>
-        <tbody>${logs.map(l=>`
-          <tr class="${l.fail?'fail':''}">
-            <td>${l.date}</td><td>${l.time}</td><td>${l.user}</td>
-            <td class="event">${l.event}</td>
-            <td class="detail" title="${l.detail||''}">${l.detail||'—'}</td>
-          </tr>`).join('')}
-        </tbody></table>`;
-    } catch(e) { wrap.innerHTML = '<div class="empty-state">Failed to load logs.</div>'; }
+  async function loadLogs(){
+    const wrap=document.getElementById('logs-wrap');
+    wrap.innerHTML='<div class="empty-state"><span class="spinner"></span>Loading...</div>';
+    try{
+      const res=await api('/admin/logs?days='+logDays);if(!res)return;
+      const logs=await res.json();
+      if(!logs.length){wrap.innerHTML='<div class="empty-state">No logs.</div>';return;}
+      wrap.innerHTML=`<table class="log-table"><thead><tr><th>DATE</th><th>TIME</th><th>USER</th><th>EVENT</th><th>DETAIL</th></tr></thead><tbody>${logs.map(l=>`<tr class="${l.fail?'fail':''}"><td>${l.date}</td><td>${l.time}</td><td>${l.user}</td><td class="event">${l.event}</td><td class="detail" title="${l.detail||''}">${l.detail||'—'}</td></tr>`).join('')}</tbody></table>`;
+    }catch(e){wrap.innerHTML='<div class="empty-state">Failed.</div>';}
   }
 
   // ── EVENTS ───────────────────────────────────────────────────
@@ -920,6 +754,7 @@
   document.getElementById('btn-back').addEventListener('click', () => {
     clearInterval(pollTimer); stopScreenPolling(); closeConsole();
     document.getElementById('screen-modal').classList.remove('open');
+    document.getElementById('power-dropdown').classList.remove('open');
     showPage('page-devices'); loadDevices();
   });
   document.getElementById('btn-refresh').addEventListener('click', loadProcesses);
@@ -929,82 +764,58 @@
   document.getElementById('btn-close-screen').addEventListener('click', () => { stopScreenPolling(); document.getElementById('screen-modal').classList.remove('open'); });
   document.getElementById('btn-console-send').addEventListener('click', runConsoleCommand);
   document.getElementById('console-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { runConsoleCommand(); return; }
-    if (e.key === 'ArrowUp') {
-      historyIdx = Math.min(historyIdx+1, cmdHistory.length-1);
-      if (cmdHistory[historyIdx]) e.target.value = cmdHistory[historyIdx];
-      e.preventDefault();
-    }
-    if (e.key === 'ArrowDown') {
-      historyIdx = Math.max(historyIdx-1, -1);
-      e.target.value = historyIdx >= 0 ? cmdHistory[historyIdx] : '';
-      e.preventDefault();
-    }
+    if(e.key==='Enter'){runConsoleCommand();return;}
+    if(e.key==='ArrowUp'){historyIdx=Math.min(historyIdx+1,cmdHistory.length-1);if(cmdHistory[historyIdx])e.target.value=cmdHistory[historyIdx];e.preventDefault();}
+    if(e.key==='ArrowDown'){historyIdx=Math.max(historyIdx-1,-1);e.target.value=historyIdx>=0?cmdHistory[historyIdx]:'';e.preventDefault();}
   });
-  document.getElementById('login-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
-  document.getElementById('login-user').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('login-pass').focus(); });
+  document.getElementById('login-pass').addEventListener('keydown', e=>{if(e.key==='Enter')doLogin();});
+  document.getElementById('login-user').addEventListener('keydown', e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
   document.getElementById('proc-search').addEventListener('input', renderProcesses);
-  document.getElementById('modal-cancel').addEventListener('click', ()=>{ document.getElementById('kill-modal').classList.remove('open'); pendingKill=null; });
+  document.getElementById('modal-cancel').addEventListener('click', ()=>{document.getElementById('kill-modal').classList.remove('open');pendingKill=null;});
   document.getElementById('modal-confirm').addEventListener('click', confirmKill);
-  document.querySelectorAll('.proc-table thead th[data-col]').forEach(th=>
-    th.addEventListener('click',()=>{
-      if(sortCol===th.dataset.col) sortAsc=!sortAsc; else { sortCol=th.dataset.col; sortAsc=false; }
-      renderProcesses();
-    })
-  );
-  document.querySelectorAll('.filter-btn[data-days]').forEach(btn=>
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      logDays=parseInt(btn.dataset.days);
-      loadLogs();
-    })
-  );
+  document.querySelectorAll('.proc-table thead th[data-col]').forEach(th=>th.addEventListener('click',()=>{if(sortCol===th.dataset.col)sortAsc=!sortAsc;else{sortCol=th.dataset.col;sortAsc=false;}renderProcesses();}));
+  document.querySelectorAll('.filter-btn[data-days]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');logDays=parseInt(btn.dataset.days);loadLogs();}));
 
-  // ── POWER MENU ───────────────────────────────────────────────
-  async function sendAction(deviceId, payload) {
-    try {
-      const res = await api('/devices/'+deviceId+'/action', {method:'POST',body:JSON.stringify(payload)});
-      if (res && res.ok) return true;
-      const d = await res.json().catch(()=>({}));
-      toast(d.error||'Action failed', true); return false;
-    } catch(e) { toast('Error', true); return false; }
-  }
-
+  // Power dropdown toggle
   document.getElementById('btn-power').addEventListener('click', e => {
     e.stopPropagation();
-    document.getElementById('power-menu').classList.toggle('open');
+    document.getElementById('power-dropdown').classList.toggle('open');
   });
   document.addEventListener('click', e => {
-    const pw = document.getElementById('power-wrap');
-    if (pw && !pw.contains(e.target))
-      document.getElementById('power-menu').classList.remove('open');
+    if (!document.getElementById('power-wrap').contains(e.target))
+      document.getElementById('power-dropdown').classList.remove('open');
   });
 
-  document.querySelectorAll('.power-menu [data-action]').forEach(btn => {
+  // Power action buttons (data-action)
+  document.querySelectorAll('#power-dropdown [data-action]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const action = btn.dataset.action;
-      document.getElementById('power-menu').classList.remove('open');
-      const msgs = {shutdown:`Shutdown ${currentDevice?.name} in 10s?`,restart:`Restart ${currentDevice?.name} in 10s?`,signout:`Sign out user on ${currentDevice?.name}?`};
-      if (msgs[action] && !confirm(msgs[action])) return;
-      if (await sendAction(currentDevice.id, {type:action})) {
-        const t = {shutdown:'Shutdown in 10s',restart:'Restart in 10s',signout:'Signed out',cancel_shutdown:'Shutdown cancelled'};
-        toast(t[action]||'Done');
+      document.getElementById('power-dropdown').classList.remove('open');
+      const confirmMsg = {
+        shutdown: `Shutdown ${currentDevice?.name} in 10 seconds?`,
+        restart:  `Restart ${currentDevice?.name} in 10 seconds?`,
+        signout:  `Sign out current user on ${currentDevice?.name}?`
+      }[action];
+      if (confirmMsg && !confirm(confirmMsg)) return;
+      if (await sendAction(action)) {
+        const msg = {shutdown:'Shutdown in 10s — cancel with Cancel Shutdown',restart:'Restart in 10s — cancel with Cancel Shutdown',signout:'Sign out sent',cancel_shutdown:'Shutdown cancelled'};
+        toast(msg[action] || 'Done');
       }
     });
   });
 
+  // Freeze toggle
   document.getElementById('btn-freeze-toggle').addEventListener('click', async () => {
-    document.getElementById('power-menu').classList.remove('open');
+    document.getElementById('power-dropdown').classList.remove('open');
     const action = deviceFrozen ? 'unfreeze' : 'freeze';
-    if (await sendAction(currentDevice.id, {type:action})) {
+    if (await sendAction(action)) {
       deviceFrozen = !deviceFrozen;
       updateFreezeUI();
-      toast(deviceFrozen ? 'Device frozen' : 'Device unfrozen');
+      toast(deviceFrozen ? '❄ Device frozen' : '▶ Device unfrozen');
     }
   });
 
-  // ── POPUP SENDER ─────────────────────────────────────────────
+  // Popup sender
   document.getElementById('btn-popup-open').addEventListener('click', () => {
     document.getElementById('popup-title').value = '';
     document.getElementById('popup-message').value = '';
@@ -1019,19 +830,18 @@
     const message = document.getElementById('popup-message').value.trim();
     if (!message) { toast('Enter a message', true); return; }
     document.getElementById('popup-modal').classList.remove('open');
-    if (await sendAction(currentDevice.id, {type:'popup', title:title||'Message', message}))
-      toast('Popup sent to '+currentDevice.name);
+    if (await sendAction('popup', {title: title||'Message', message}))
+      toast('Popup sent to ' + currentDevice.name);
   });
   document.getElementById('popup-message').addEventListener('keydown', e => {
-    if (e.key==='Enter' && e.ctrlKey) document.getElementById('btn-popup-send').click();
+    if (e.key === 'Enter' && e.ctrlKey) document.getElementById('btn-popup-send').click();
   });
 
   // ── INIT ─────────────────────────────────────────────────────
   if (authToken) {
     document.getElementById('nav-role').textContent = (userRole||'').toUpperCase();
     document.getElementById('btn-admin').style.display = can('manage_users') ? 'block' : 'none';
-    showPage('page-devices');
-    loadDevices();
+    showPage('page-devices'); loadDevices();
   }
 </script>
 </body>
