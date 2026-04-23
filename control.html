@@ -961,6 +961,71 @@
     })
   );
 
+  // ── POWER MENU ───────────────────────────────────────────────
+  async function sendAction(deviceId, payload) {
+    try {
+      const res = await api('/devices/'+deviceId+'/action', {method:'POST',body:JSON.stringify(payload)});
+      if (res && res.ok) return true;
+      const d = await res.json().catch(()=>({}));
+      toast(d.error||'Action failed', true); return false;
+    } catch(e) { toast('Error', true); return false; }
+  }
+
+  document.getElementById('btn-power').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('power-menu').classList.toggle('open');
+  });
+  document.addEventListener('click', e => {
+    const pw = document.getElementById('power-wrap');
+    if (pw && !pw.contains(e.target))
+      document.getElementById('power-menu').classList.remove('open');
+  });
+
+  document.querySelectorAll('.power-menu [data-action]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const action = btn.dataset.action;
+      document.getElementById('power-menu').classList.remove('open');
+      const msgs = {shutdown:`Shutdown ${currentDevice?.name} in 10s?`,restart:`Restart ${currentDevice?.name} in 10s?`,signout:`Sign out user on ${currentDevice?.name}?`};
+      if (msgs[action] && !confirm(msgs[action])) return;
+      if (await sendAction(currentDevice.id, {type:action})) {
+        const t = {shutdown:'Shutdown in 10s',restart:'Restart in 10s',signout:'Signed out',cancel_shutdown:'Shutdown cancelled'};
+        toast(t[action]||'Done');
+      }
+    });
+  });
+
+  document.getElementById('btn-freeze-toggle').addEventListener('click', async () => {
+    document.getElementById('power-menu').classList.remove('open');
+    const action = deviceFrozen ? 'unfreeze' : 'freeze';
+    if (await sendAction(currentDevice.id, {type:action})) {
+      deviceFrozen = !deviceFrozen;
+      updateFreezeUI();
+      toast(deviceFrozen ? 'Device frozen' : 'Device unfrozen');
+    }
+  });
+
+  // ── POPUP SENDER ─────────────────────────────────────────────
+  document.getElementById('btn-popup-open').addEventListener('click', () => {
+    document.getElementById('popup-title').value = '';
+    document.getElementById('popup-message').value = '';
+    document.getElementById('popup-modal').classList.add('open');
+    setTimeout(() => document.getElementById('popup-title').focus(), 50);
+  });
+  document.getElementById('btn-popup-cancel').addEventListener('click', () => {
+    document.getElementById('popup-modal').classList.remove('open');
+  });
+  document.getElementById('btn-popup-send').addEventListener('click', async () => {
+    const title   = document.getElementById('popup-title').value.trim();
+    const message = document.getElementById('popup-message').value.trim();
+    if (!message) { toast('Enter a message', true); return; }
+    document.getElementById('popup-modal').classList.remove('open');
+    if (await sendAction(currentDevice.id, {type:'popup', title:title||'Message', message}))
+      toast('Popup sent to '+currentDevice.name);
+  });
+  document.getElementById('popup-message').addEventListener('keydown', e => {
+    if (e.key==='Enter' && e.ctrlKey) document.getElementById('btn-popup-send').click();
+  });
+
   // ── INIT ─────────────────────────────────────────────────────
   if (authToken) {
     document.getElementById('nav-role').textContent = (userRole||'').toUpperCase();
