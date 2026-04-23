@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>2048</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Space Mono', monospace; color: #f0ede6; user-select: none; }
+  #header { display: flex; align-items: center; justify-content: space-between; width: 360px; margin-bottom: 1rem; }
+  #score-box { text-align: right; }
+  #score { font-size: 1.8rem; font-weight: 700; color: #e8ff47; }
+  #best { font-size: 0.65rem; color: #555; }
+  h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; }
+  #subtitle { font-size: 0.65rem; color: #555; letter-spacing: 0.1em; margin-bottom: 1rem; text-align: center; }
+  #board { display: grid; grid-template-columns: repeat(4,80px); grid-template-rows: repeat(4,80px); gap: 8px; background: #141414; padding: 8px; border: 1px solid #222; }
+  .cell { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.5rem; border: 1px solid #1e1e1e; background: #0f0f0f; transition: background 0.1s; }
+  .t2    { background: #1a1a00; color: #e8ff47; }
+  .t4    { background: #2a2a00; color: #e8ff47; }
+  .t8    { background: #3a2a00; color: #ffcc47; }
+  .t16   { background: #4a2000; color: #ff9947; }
+  .t32   { background: #5a1500; color: #ff7247; }
+  .t64   { background: #6a0a00; color: #ff4747; }
+  .t128  { background: #7a0030; color: #ff47aa; font-size: 1.2rem; }
+  .t256  { background: #6a0060; color: #cc47ff; font-size: 1.2rem; }
+  .t512  { background: #4a0080; color: #8847ff; font-size: 1.1rem; }
+  .t1024 { background: #200090; color: #47aaff; font-size: 0.95rem; }
+  .t2048 { background: #e8ff47; color: #0a0a0a; font-size: 0.95rem; }
+  #msg { margin-top: 1rem; font-size: 0.7rem; color: #555; letter-spacing: 0.1em; text-align: center; }
+  #new-btn { margin-top: 1rem; background: none; border: 1px solid #333; color: #555; padding: 0.5rem 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; letter-spacing: 0.1em; transition: all 0.2s; }
+  #new-btn:hover { border-color: #e8ff47; color: #e8ff47; }
+</style>
+</head>
+<body>
+<div id="header">
+  <h1>2048</h1>
+  <div id="score-box">
+    <div id="score">0</div>
+    <div id="best">BEST: 0</div>
+  </div>
+</div>
+<div id="subtitle">MERGE TILES — REACH 2048</div>
+<div id="board"></div>
+<button id="new-btn" onclick="newGame()">NEW GAME</button>
+<div id="msg">USE ARROW KEYS OR WASD</div>
+
+<script>
+let grid, score, best = 0, over = false;
+
+function newGame() {
+  grid = Array.from({length:4},()=>Array(4).fill(0));
+  score = 0; over = false;
+  addTile(); addTile(); render();
+  document.getElementById('msg').textContent = 'USE ARROW KEYS OR WASD';
+}
+
+function addTile() {
+  const empty = [];
+  for (let r=0;r<4;r++) for (let c=0;c<4;c++) if (!grid[r][c]) empty.push([r,c]);
+  if (!empty.length) return;
+  const [r,c] = empty[Math.floor(Math.random()*empty.length)];
+  grid[r][c] = Math.random()<0.9 ? 2 : 4;
+}
+
+function render() {
+  const b = document.getElementById('board'); b.innerHTML='';
+  grid.forEach(row=>row.forEach(v=>{
+    const d = document.createElement('div');
+    d.className = 'cell' + (v?' t'+v:'');
+    d.textContent = v||'';
+    b.appendChild(d);
+  }));
+  document.getElementById('score').textContent = score;
+  if (score>best) { best=score; document.getElementById('best').textContent='BEST: '+best; }
+}
+
+function slide(row) {
+  let a = row.filter(v=>v);
+  for (let i=0;i<a.length-1;i++) {
+    if (a[i]===a[i+1]) { a[i]*=2; score+=a[i]; a.splice(i+1,1); }
+  }
+  while (a.length<4) a.push(0);
+  return a;
+}
+
+function move(dir) {
+  if (over) return;
+  const prev = JSON.stringify(grid);
+  if (dir==='left')  grid = grid.map(r=>slide(r));
+  if (dir==='right') grid = grid.map(r=>slide([...r].reverse()).reverse());
+  if (dir==='up')    grid = transpose(grid.map((_,i)=>slide(grid.map(r=>r[i]))));
+  if (dir==='down')  grid = transpose(grid.map((_,i)=>slide([...grid.map(r=>r[i])].reverse()).reverse()));
+  if (JSON.stringify(grid)!==prev) { addTile(); render(); checkEnd(); }
+}
+
+function transpose(m) { return m[0].map((_,i)=>m.map(r=>r[i])); }
+
+function checkEnd() {
+  if (grid.some(r=>r.some(v=>v===2048))) { document.getElementById('msg').textContent='🎉 YOU REACHED 2048! KEEP GOING...'; return; }
+  for (let r=0;r<4;r++) for (let c=0;c<4;c++) {
+    if (!grid[r][c]) return;
+    if (r<3&&grid[r][c]===grid[r+1][c]) return;
+    if (c<3&&grid[r][c]===grid[r][c+1]) return;
+  }
+  over = true; document.getElementById('msg').textContent='GAME OVER — PRESS NEW GAME';
+}
+
+document.addEventListener('keydown', e=>{
+  const map = {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',a:'left',d:'right',w:'up',s:'down'};
+  if (map[e.key]) { e.preventDefault(); move(map[e.key]); }
+});
+
+// Touch swipe
+let tx, ty;
+document.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; });
+document.addEventListener('touchend', e=>{
+  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  if (Math.abs(dx)>Math.abs(dy)) move(dx>0?'right':'left');
+  else move(dy>0?'down':'up');
+});
+
+newGame();
+</script>
+</body>
+</html>

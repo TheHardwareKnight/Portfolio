@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Snake</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Space Mono', monospace; color: #f0ede6; }
+  canvas { border: 1px solid #222; display: block; }
+  #ui { text-align: center; margin-bottom: 1.5rem; }
+  #score { font-size: 2rem; font-weight: 700; color: #e8ff47; letter-spacing: -0.02em; }
+  #msg { font-size: 0.75rem; color: #555; letter-spacing: 0.1em; margin-top: 0.25rem; }
+  #hi { font-size: 0.7rem; color: #333; margin-top: 0.1rem; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div id="score">0</div>
+  <div id="hi">BEST: 0</div>
+  <div id="msg">PRESS ANY KEY TO START</div>
+</div>
+<canvas id="c"></canvas>
+<script>
+const C = document.getElementById('c');
+const ctx = C.getContext('2d');
+const CELL = 20, COLS = 25, ROWS = 22;
+C.width = CELL * COLS; C.height = CELL * ROWS;
+
+let snake, dir, next, food, score, hi = 0, running = false, loop;
+
+const BG = '#0a0a0a', SNAKE = '#e8ff47', FOOD = '#ff4747', GRID = '#111';
+
+function init() {
+  snake = [{x:12,y:11},{x:11,y:11},{x:10,y:11}];
+  dir = {x:1,y:0}; next = {x:1,y:0};
+  spawnFood(); score = 0; update();
+}
+
+function spawnFood() {
+  do { food = {x:Math.floor(Math.random()*COLS), y:Math.floor(Math.random()*ROWS)}; }
+  while (snake.some(s=>s.x===food.x&&s.y===food.y));
+}
+
+function draw() {
+  ctx.fillStyle = BG; ctx.fillRect(0,0,C.width,C.height);
+  // grid
+  ctx.strokeStyle = GRID; ctx.lineWidth = 0.5;
+  for (let x=0;x<=COLS;x++) { ctx.beginPath(); ctx.moveTo(x*CELL,0); ctx.lineTo(x*CELL,C.height); ctx.stroke(); }
+  for (let y=0;y<=ROWS;y++) { ctx.beginPath(); ctx.moveTo(0,y*CELL); ctx.lineTo(C.width,y*CELL); ctx.stroke(); }
+  // food
+  ctx.fillStyle = FOOD;
+  ctx.fillRect(food.x*CELL+2, food.y*CELL+2, CELL-4, CELL-4);
+  // snake
+  snake.forEach((s,i) => {
+    ctx.fillStyle = i===0 ? '#fff' : SNAKE;
+    ctx.fillRect(s.x*CELL+1, s.y*CELL+1, CELL-2, CELL-2);
+  });
+}
+
+function step() {
+  dir = next;
+  const head = {x:snake[0].x+dir.x, y:snake[0].y+dir.y};
+  if (head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)) {
+    return gameOver();
+  }
+  snake.unshift(head);
+  if (head.x===food.x&&head.y===food.y) {
+    score++; update(); spawnFood();
+  } else { snake.pop(); }
+  draw();
+}
+
+function update() {
+  document.getElementById('score').textContent = score;
+  if (score > hi) { hi = score; document.getElementById('hi').textContent = 'BEST: '+hi; }
+}
+
+function gameOver() {
+  clearInterval(loop); running = false;
+  ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0,0,C.width,C.height);
+  ctx.fillStyle = '#e8ff47'; ctx.font = 'bold 2rem Syne, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('GAME OVER', C.width/2, C.height/2-20);
+  ctx.fillStyle = '#555'; ctx.font = '0.8rem Space Mono, monospace';
+  ctx.fillText('SCORE: '+score+'  •  PRESS ANY KEY', C.width/2, C.height/2+20);
+  document.getElementById('msg').textContent = 'PRESS ANY KEY TO RESTART';
+}
+
+document.addEventListener('keydown', e => {
+  const map = {ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0},
+               w:{x:0,y:-1},s:{x:0,y:1},a:{x:-1,y:0},d:{x:1,y:0}};
+  const d = map[e.key];
+  if (d && !(d.x===-dir.x&&d.y===-dir.y)) { next = d; e.preventDefault(); }
+  if (!running) { running=true; document.getElementById('msg').textContent='USE ARROW KEYS'; init(); loop=setInterval(step,120); }
+});
+
+draw();
+</script>
+</body>
+</html>

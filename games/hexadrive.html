@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hexa Drive</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#0a0a0a; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; overflow:hidden; font-family:'Space Mono',monospace; color:#f0ede6; }
+  canvas { display:block; }
+  #ui { position:absolute; top:16px; left:50%; transform:translateX(-50%); text-align:center; pointer-events:none; }
+  #score { font-size:1.8rem; font-weight:700; color:#e8ff47; }
+  #hi { font-size:0.65rem; color:#555; }
+  #controls { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); display:flex; gap:0.5rem; }
+  .ctrl-btn { background:#141414; border:1px solid #333; color:#f0ede6; padding:0.6rem 1rem; font-family:'Space Mono',monospace; font-size:0.75rem; cursor:pointer; user-select:none; letter-spacing:0.05em; }
+  .ctrl-btn:active { background:#222; }
+</style>
+</head>
+<body>
+<div id="ui"><div id="score">0</div><div id="hi">BEST: 0</div></div>
+<canvas id="c"></canvas>
+<div id="controls">
+  <button class="ctrl-btn" id="bl">◄</button>
+  <button class="ctrl-btn" id="bup">▲</button>
+  <button class="ctrl-btn" id="bdn">▼</button>
+  <button class="ctrl-btn" id="br">►</button>
+</div>
+<script>
+const C=document.getElementById('c'),ctx=C.getContext('2d');
+const SIZE=Math.min(window.innerWidth,window.innerHeight*0.85,560);
+C.width=SIZE; C.height=SIZE;
+const W=SIZE,H=SIZE;
+
+// hex grid setup
+const R=34; // hex radius
+const HH=R*2, HW=Math.sqrt(3)*R;
+const ROWS=9,COLS=9;
+const OX=W/2-((COLS-1)/2)*HW, OY=60;
+
+function hexCenter(col,row){
+  const x=OX+col*HW+(row%2===1?HW/2:0);
+  const y=OY+row*R*1.5;
+  return {x,y};
+}
+
+let hexes,car,bots,score,hi=0,state='start',frame=0;
+const keys={};
+
+function initGame(){
+  hexes={};
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const id=`${c},${r}`;
+    hexes[id]={c,r,life:1,falling:false,fallY:0,solid:true};
+  }
+  car={c:4,r:4,x:0,y:0,angle:0,color:'#e8ff47',player:true};
+  updateCarPos(car);
+  bots=[];
+  for(let i=0;i<3;i++){
+    const bc=[1,7,4][i], br=[1,1,7][i];
+    const bot={c:bc,r:br,x:0,y:0,angle:0,color:['#ff4747','#47aaff','#ff47aa'][i],player:false,moveTimer:0};
+    updateCarPos(bot); bots.push(bot);
+  }
+  score=0; frame=0; state='play';
+}
+
+function updateCarPos(c){
+  const p=hexCenter(c.c,c.r);
+  c.x=p.x; c.y=p.y;
+}
+
+function getHex(c,r){ return hexes[`${c},${r}`]; }
+
+function sinkHex(c,r){
+  const h=getHex(c,r);
+  if(h&&h.solid&&!h.falling){ h.falling=true; h.life=0; setTimeout(()=>{h.solid=false;},800); }
+}
+
+function tryMove(entity,dc,dr){
+  const nc=entity.c+dc, nr=entity.r+dr;
+  if(nc<0||nc>=COLS||nr<0||nr>=ROWS)return false;
+  const h=getHex(nc,nr);
+  if(!h||!h.solid)return false;
+  entity.c=nc; entity.r=nr;
+  updateCarPos(entity);
+  sinkHex(nc,nr);
+  return true;
+}
+
+// neighbor offsets (flat-top hexes with offset rows)
+function neighbors(c,r){
+  const odd=r%2===1;
+  return [[1,0],[-1,0],[0,-1],[odd?1:0,-1],[0,1],[odd?1:0,1]].map(([dc,dr])=>({c:c+dc,r:r+dr}))
+    .filter(n=>n.c>=0&&n.c<COLS&&n.r>=0&&n.r<ROWS&&getHex(n.c,n.r)?.solid);
+}
+
+function botAI(bot){
+  bot.moveTimer++;
+  if(bot.moveTimer<25)return;
+  bot.moveTimer=0;
+  const ns=neighbors(bot.c,bot.r);
+  if(!ns.length)return;
+  // prefer moving away from edge
+  const sorted=ns.sort((a,b)=>{
+    const distA=Math.min(a.c,COLS-1-a.c,a.r,ROWS-1-a.r);
+    const distB=Math.min(b.c,COLS-1-b.c,b.r,ROWS-1-b.r);
+    return distB-distA;
+  });
+  const pick=sorted[Math.floor(Math.random()*Math.min(3,sorted.length))];
+  const dc=pick.c-bot.c, dr=pick.r-bot.r;
+  tryMove(bot,dc,dr);
+}
+
+function isAlive(entity){
+  const h=getHex(entity.c,entity.r);
+  return h&&h.solid;
+}
+
+let moveCD=0;
+function update(){
+  if(state!=='play')return;
+  frame++;
+
+  // player movement
+  if(moveCD>0)moveCD--;
+  if(moveCD===0){
+    const r=car.r, odd=r%2===1;
+    if(keys['ArrowRight']||keys['d']){tryMove(car,1,0);sinkHex(car.c,car.r);moveCD=12;}
+    else if(keys['ArrowLeft']||keys['a']){tryMove(car,-1,0);sinkHex(car.c,car.r);moveCD=12;}
+    else if(keys['ArrowUp']||keys['w']){tryMove(car,odd?1:0,-1);sinkHex(car.c,car.r);moveCD=12;}
+    else if(keys['ArrowDown']||keys['s']){tryMove(car,odd?1:0,1);sinkHex(car.c,car.r);moveCD=12;}
+  }
+
+  // sink current tile after a delay
+  if(frame%30===0) sinkHex(car.c,car.r);
+
+  bots.forEach(b=>botAI(b));
+
+  // falling animation
+  Object.values(hexes).forEach(h=>{ if(h.falling&&!h.solid) h.fallY+=3; });
+
+  score=Math.floor(frame/6);
+  if(score>hi)hi=score;
+  document.getElementById('score').textContent=score;
+  document.getElementById('hi').textContent='BEST: '+hi;
+
+  // check player dead
+  if(!isAlive(car)) state='over';
+  bots=bots.filter(b=>isAlive(b));
+  if(bots.length===0&&state==='play') state='win';
+}
+
+function drawHex(cx,cy,r,fillColor,strokeColor){
+  ctx.beginPath();
+  for(let i=0;i<6;i++){
+    const a=Math.PI/180*(60*i-30);
+    const px=cx+r*Math.cos(a), py=cy+r*Math.sin(a);
+    i?ctx.lineTo(px,py):ctx.moveTo(px,py);
+  }
+  ctx.closePath();
+  if(fillColor){ctx.fillStyle=fillColor;ctx.fill();}
+  if(strokeColor){ctx.strokeStyle=strokeColor;ctx.lineWidth=1.5;ctx.stroke();}
+}
+
+function drawCar(entity){
+  ctx.save();
+  ctx.translate(entity.x,entity.y);
+  ctx.fillStyle=entity.color;
+  ctx.beginPath(); ctx.roundRect(-10,-14,20,28,4); ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.5)';
+  ctx.fillRect(-6,-10,12,8);
+  ctx.restore();
+}
+
+function draw(){
+  ctx.fillStyle='#0a0a0a'; ctx.fillRect(0,0,W,H);
+
+  // draw hexes
+  Object.values(hexes).forEach(h=>{
+    const p=hexCenter(h.c,h.r);
+    const fy=p.y+h.fallY;
+    if(h.fallY>H)return;
+    if(h.solid){
+      drawHex(p.x,fy,R-2,'#141414','#2a2a2a');
+      // tile number indicator
+      ctx.fillStyle='#1e1e1e'; ctx.font='0.55rem Space Mono,monospace'; ctx.textAlign='center';
+      ctx.fillText(`${h.c},${h.r}`,p.x,fy+4);
+    } else if(h.falling){
+      ctx.globalAlpha=Math.max(0,1-h.fallY/60);
+      drawHex(p.x,fy,R-2,'#0a0505','#330000');
+      ctx.globalAlpha=1;
+    }
+  });
+
+  // draw bots
+  bots.forEach(b=>{
+    if(isAlive(b))drawCar(b);
+  });
+
+  // draw player
+  if(isAlive(car))drawCar(car);
+
+  // HUD overlay
+  if(state==='start'){
+    ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#e8ff47'; ctx.font='bold 2rem Syne,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('HEXA DRIVE',W/2,H/2-40);
+    ctx.fillStyle='#555'; ctx.font='0.72rem Space Mono,monospace';
+    ctx.fillText('Drive on hexagons — they disappear!',W/2,H/2);
+    ctx.fillText('Last one standing wins.',W/2,H/2+20);
+    ctx.fillStyle='#e8ff47'; ctx.font='0.7rem Space Mono,monospace';
+    ctx.fillText('ARROW KEYS / WASD — PRESS TO START',W/2,H/2+55);
+  }
+
+  if(state==='over'){
+    ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#ff4747'; ctx.font='bold 2rem Syne,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('YOU FELL!',W/2,H/2-20);
+    ctx.fillStyle='#555'; ctx.font='0.75rem Space Mono,monospace';
+    ctx.fillText('SCORE: '+score+'  •  PRESS ANY KEY',W/2,H/2+20);
+  }
+
+  if(state==='win'){
+    ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#e8ff47'; ctx.font='bold 2rem Syne,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('YOU WIN!',W/2,H/2-20);
+    ctx.fillStyle='#555'; ctx.font='0.75rem Space Mono,monospace';
+    ctx.fillText('ALL BOTS FELL  •  PRESS ANY KEY',W/2,H/2+20);
+  }
+}
+
+document.addEventListener('keydown',e=>{
+  keys[e.key]=true;
+  if(state==='start')initGame();
+  if(state==='over'||state==='win')initGame();
+  e.preventDefault();
+});
+document.addEventListener('keyup',e=>keys[e.key]=false);
+
+// touch controls
+function addBtn(id,dc,dr){
+  document.getElementById(id).addEventListener('touchstart',e=>{
+    e.preventDefault();
+    if(state!=='play'){initGame();return;}
+    const r=car.r,odd=r%2===1;
+    if(id==='bup')tryMove(car,odd?1:0,-1);
+    else if(id==='bdn')tryMove(car,odd?1:0,1);
+    else tryMove(car,dc,dr);
+    sinkHex(car.c,car.r);
+  },{passive:false});
+  document.getElementById(id).addEventListener('mousedown',e=>{
+    if(state!=='play'){initGame();return;}
+    const r=car.r,odd=r%2===1;
+    if(id==='bup')tryMove(car,odd?1:0,-1);
+    else if(id==='bdn')tryMove(car,odd?1:0,1);
+    else tryMove(car,dc,dr);
+    sinkHex(car.c,car.r);
+  });
+}
+addBtn('bl',-1,0); addBtn('br',1,0); addBtn('bup',0,-1); addBtn('bdn',0,1);
+
+function loop(){update();draw();requestAnimationFrame(loop);}
+loop();
+</script>
+</body>
+</html>

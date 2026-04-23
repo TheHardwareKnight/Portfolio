@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Drift Boss</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#0a0a0a; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; overflow:hidden; font-family:'Space Mono',monospace; }
+  canvas { display:block; cursor:pointer; touch-action:none; }
+  #ui { position:absolute; top:20px; left:50%; transform:translateX(-50%); text-align:center; pointer-events:none; }
+  #score { font-size:2.5rem; font-weight:700; color:#e8ff47; letter-spacing:-0.02em; }
+  #hi { font-size:0.65rem; color:#555; margin-top:0.2rem; }
+</style>
+</head>
+<body>
+<div id="ui"><div id="score">0</div><div id="hi">BEST: 0</div></div>
+<canvas id="c"></canvas>
+<script>
+const C=document.getElementById('c'),ctx=C.getContext('2d');
+C.width=Math.min(window.innerWidth,480);
+C.height=Math.min(window.innerHeight,700);
+const W=C.width,H=C.height;
+
+const TILE_W=90,TILE_H=90,SPEED=3;
+let tiles,car,score,hi=0,state='start',held=false,coinParticles=[];
+
+function initGame(){
+  score=0;
+  // build initial road
+  tiles=[];
+  let x=Math.floor(W/2/TILE_W)*TILE_W, y=H-TILE_H;
+  for(let i=0;i<10;i++) { tiles.push({x,y:y-i*TILE_H,type:'v'}); }
+  // car starts on tile
+  car={x:x+TILE_W/2,y:y-TILE_H*3,angle:Math.PI,vx:0,vy:-SPEED,width:28,height:44,speed:SPEED};
+}
+
+function extendRoad(){
+  const last=tiles[tiles.length-1];
+  // turn or straight
+  const r=Math.random();
+  if(r<0.35){
+    // turn right
+    let tx=last.x,ty=last.y;
+    for(let i=1;i<=5;i++) tiles.push({x:tx+i*TILE_W,y:ty,type:'h'});
+    const corner=tiles[tiles.length-1];
+    for(let i=1;i<=6;i++) tiles.push({x:corner.x,y:corner.y-i*TILE_H,type:'v'});
+  } else if(r<0.65){
+    // turn left
+    let tx=last.x,ty=last.y;
+    for(let i=1;i<=5;i++) tiles.push({x:tx-i*TILE_W,y:ty,type:'h'});
+    const corner=tiles[tiles.length-1];
+    for(let i=1;i<=6;i++) tiles.push({x:corner.x,y:corner.y-i*TILE_H,type:'v'});
+  } else {
+    // straight
+    for(let i=1;i<=5;i++) tiles.push({x:last.x,y:last.y-i*TILE_H,type:'v'});
+  }
+}
+
+function onRoad(cx,cy){
+  return tiles.some(t=>cx>t.x&&cx<t.x+TILE_W&&cy>t.y&&cy<t.y+TILE_H);
+}
+
+function update(){
+  if(state!=='play')return;
+
+  // move road down
+  const scrollY=SPEED*0.8;
+  tiles.forEach(t=>t.y+=scrollY);
+  tiles=tiles.filter(t=>t.y<H+TILE_H*2);
+  if(tiles.length<30) extendRoad();
+
+  // steer
+  if(held){ car.angle+=0.045; }
+  else     { car.angle-=0.045; }
+
+  car.vx=Math.sin(car.angle)*car.speed;
+  car.vy=-Math.cos(car.angle)*car.speed;
+  car.x+=car.vx;
+  car.y+=car.vy+scrollY;
+
+  // score
+  score=Math.floor(score+0.05);
+  if(score>hi)hi=score;
+  document.getElementById('score').textContent=score;
+  document.getElementById('hi').textContent='BEST: '+hi;
+
+  // check off road
+  const cx=car.x, cy=car.y;
+  if(!onRoad(cx-8,cy)||!onRoad(cx+8,cy)||!onRoad(cx,cy-10)||!onRoad(cx,cy+10)){
+    state='over';
+  }
+
+  // coin particles
+  coinParticles.forEach(p=>{p.y-=2;p.alpha-=0.04;});
+  coinParticles=coinParticles.filter(p=>p.alpha>0);
+}
+
+function drawTile(t){
+  ctx.fillStyle='#141414';
+  ctx.fillRect(t.x,t.y,TILE_W,TILE_H);
+  ctx.strokeStyle='#1e1e1e'; ctx.lineWidth=1;
+  ctx.strokeRect(t.x,t.y,TILE_W,TILE_H);
+  // road markings
+  ctx.strokeStyle='#2a2a2a'; ctx.lineWidth=2;
+  ctx.setLineDash([10,10]);
+  ctx.beginPath();
+  if(t.type==='v'){ctx.moveTo(t.x+TILE_W/2,t.y);ctx.lineTo(t.x+TILE_W/2,t.y+TILE_H);}
+  else{ctx.moveTo(t.x,t.y+TILE_H/2);ctx.lineTo(t.x+TILE_W,t.y+TILE_H/2);}
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawCar(){
+  ctx.save();
+  ctx.translate(car.x,car.y);
+  ctx.rotate(car.angle);
+  // body
+  ctx.fillStyle='#e8ff47';
+  ctx.beginPath();
+  ctx.roundRect(-car.width/2,-car.height/2,car.width,car.height,4);
+  ctx.fill();
+  // windows
+  ctx.fillStyle='#0a0a1a';
+  ctx.fillRect(-8,-16,16,12);
+  // wheels
+  ctx.fillStyle='#0a0a0a';
+  [[-14,-16],[ 14,-16],[-14,10],[ 14,10]].forEach(([wx,wy])=>{
+    ctx.fillRect(wx-4,wy-5,8,10);
+  });
+  ctx.restore();
+}
+
+function draw(){
+  ctx.fillStyle='#0a0a0a';
+  ctx.fillRect(0,0,W,H);
+
+  tiles.forEach(drawTile);
+  drawCar();
+
+  coinParticles.forEach(p=>{
+    ctx.globalAlpha=p.alpha;
+    ctx.fillStyle='#e8ff47';
+    ctx.font='0.8rem Syne,sans-serif';
+    ctx.fillText('+1',p.x,p.y);
+  });
+  ctx.globalAlpha=1;
+
+  if(state==='start'){
+    ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#e8ff47'; ctx.font='bold 2.2rem Syne,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('DRIFT BOSS',W/2,H/2-30);
+    ctx.fillStyle='#555'; ctx.font='0.75rem Space Mono,monospace';
+    ctx.fillText('HOLD to drift right',W/2,H/2+10);
+    ctx.fillText('RELEASE to go left',W/2,H/2+30);
+    ctx.fillStyle='#e8ff47'; ctx.font='0.7rem Space Mono,monospace';
+    ctx.fillText('TAP / SPACE TO START',W/2,H/2+70);
+  }
+
+  if(state==='over'){
+    ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#e8ff47'; ctx.font='bold 2rem Syne,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('WIPED OUT',W/2,H/2-30);
+    ctx.fillStyle='#f0ede6'; ctx.font='1.2rem Syne,sans-serif';
+    ctx.fillText('SCORE: '+score,W/2,H/2+10);
+    ctx.fillStyle='#555'; ctx.font='0.75rem Space Mono,monospace';
+    ctx.fillText('TAP / SPACE TO RETRY',W/2,H/2+46);
+  }
+}
+
+function press(){ held=true; if(state!=='play'){state='play';initGame();} }
+function release(){ held=false; }
+
+C.addEventListener('mousedown',press); document.addEventListener('mouseup',release);
+C.addEventListener('touchstart',e=>{e.preventDefault();press();},{passive:false});
+C.addEventListener('touchend',e=>{e.preventDefault();release();},{passive:false});
+document.addEventListener('keydown',e=>{ if(e.code==='Space'){e.preventDefault(); if(state==='play')held=true; else{state='play';initGame();} } });
+document.addEventListener('keyup',e=>{ if(e.code==='Space') held=false; });
+
+initGame();
+function loop(){update();draw();requestAnimationFrame(loop);}
+loop();
+</script>
+</body>
+</html>
