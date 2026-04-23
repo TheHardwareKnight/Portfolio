@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat — Myles Kerschner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0a; --fg: #f0ede6; --accent: #e8ff47;
+      --muted: #555; --card: #141414; --border: #222;
+      --danger: #ff4747; --success: #47ff8a; --sys: #7eb8ff;
+    }
+    body { background: var(--bg); color: var(--fg); font-family: 'Syne', sans-serif; min-height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 999; opacity: 0.4; }
+
+    /* NAV */
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid var(--border); background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); flex-shrink: 0; z-index: 10; }
+    .nav-logo { font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--accent); letter-spacing: 0.1em; text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; }
+    #nav-user { color: var(--accent); font-size: 0.72rem; }
+    #nav-user .mod-badge { color: var(--bg); background: var(--accent); font-size: 0.55rem; padding: 0.1rem 0.35rem; margin-left: 0.4rem; letter-spacing: 0.08em; }
+    .nav-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0.7rem; font-family: 'Space Mono', monospace; font-size: 0.68rem; cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s; }
+    .nav-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* JOIN */
+    #join-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    #join-screen.hidden { display: none; }
+    .join-box { width: 100%; max-width: 400px; border: 1px solid var(--border); background: var(--card); padding: 2.5rem; animation: fadeUp 0.4s ease forwards; }
+    .join-box h1 { font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--accent); letter-spacing: 0.2em; margin-bottom: 0.4rem; }
+    .join-box p { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); margin-bottom: 2rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.4rem; }
+    .field input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--fg); padding: 0.7rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.85rem; outline: none; transition: border-color 0.2s; }
+    .field input:focus { border-color: var(--accent); }
+    .btn-join { width: 100%; background: var(--accent); color: var(--bg); border: none; padding: 0.75rem; font-family: 'Space Mono', monospace; font-size: 0.85rem; font-weight: 700; cursor: pointer; letter-spacing: 0.1em; transition: background 0.2s; margin-top: 0.5rem; }
+    .btn-join:hover { background: #d4eb3a; }
+    .btn-join:disabled { opacity: 0.5; cursor: not-allowed; }
+    .join-error { color: var(--danger); font-family: 'Space Mono', monospace; font-size: 0.72rem; margin-top: 0.75rem; min-height: 1rem; }
+    #pw-field { display: none; }
+
+    /* CHAT LAYOUT */
+    #chat-screen { flex: 1; display: none; overflow: hidden; }
+    #chat-screen.active { display: flex; }
+    .chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+
+    /* MESSAGES */
+    #messages { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; display: flex; flex-direction: column; gap: 0.35rem; scroll-behavior: smooth; }
+    #messages::-webkit-scrollbar { width: 4px; }
+    #messages::-webkit-scrollbar-thumb { background: #222; }
+    .msg { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.3rem 0.5rem; border-radius: 2px; transition: background 0.1s; }
+    .msg:hover { background: #0f0f0f; }
+    .msg-time { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: #2a2a2a; white-space: nowrap; margin-top: 0.25rem; flex-shrink: 0; }
+    .msg-name { font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; cursor: pointer; transition: opacity 0.15s; }
+    .msg-name:hover { opacity: 0.7; }
+    .msg-name.mod { color: var(--accent); }
+    .msg-name.mine { color: #777; cursor: default; }
+    .msg-text { font-size: 0.88rem; line-height: 1.5; word-break: break-word; flex: 1; }
+    .msg.system .msg-text, .msg.kick .msg-text { color: var(--sys); font-family: 'Space Mono', monospace; font-size: 0.7rem; font-style: italic; }
+    .msg.ban .msg-text { color: var(--danger); font-family: 'Space Mono', monospace; font-size: 0.7rem; font-style: italic; }
+    .msg.shout { background: rgba(232,255,71,0.04); border-left: 2px solid var(--accent); padding-left: 0.75rem; }
+    .msg.shout .msg-text { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+    .mod-badge-inline { background: var(--accent); color: var(--bg); font-size: 0.5rem; padding: 0.1rem 0.3rem; margin-left: 0.3rem; vertical-align: middle; }
+
+    /* INPUT AREA */
+    .input-area { flex-shrink: 0; position: relative; border-top: 1px solid var(--border); background: rgba(10,10,10,0.9); }
+
+    /* COMMAND AUTOCOMPLETE */
+    #cmd-popup { position: absolute; bottom: 100%; left: 0; right: 0; background: #0d0d0d; border: 1px solid var(--border); border-bottom: none; display: none; flex-direction: column-reverse; max-height: 280px; overflow-y: auto; z-index: 50; }
+    #cmd-popup.open { display: flex; }
+    .cmd-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1rem; cursor: pointer; transition: background 0.1s; border-bottom: 1px solid #111; }
+    .cmd-item:hover, .cmd-item.selected { background: #141414; }
+    .cmd-item.selected .cmd-name { color: var(--accent); }
+    .cmd-name { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--fg); white-space: nowrap; }
+    .cmd-desc { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--muted); }
+    .cmd-hint { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: #333; margin-left: auto; white-space: nowrap; }
+    .cmd-sep { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: #2a2a2a; padding: 0.25rem 1rem; letter-spacing: 0.1em; text-transform: uppercase; background: #080808; }
+
+    /* USER PICKER (shows when typing username arg) */
+    #user-picker { position: absolute; bottom: 100%; left: 0; right: 0; background: #0d0d0d; border: 1px solid var(--border); border-bottom: none; display: none; z-index: 50; }
+    #user-picker.open { display: block; }
+    .user-pick-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); padding: 0.4rem 1rem; border-bottom: 1px solid #111; letter-spacing: 0.1em; text-transform: uppercase; }
+    .user-pick-list { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.5rem 1rem; }
+    .user-chip { font-family: 'Space Mono', monospace; font-size: 0.7rem; border: 1px solid var(--border); padding: 0.2rem 0.6rem; cursor: pointer; transition: all 0.15s; }
+    .user-chip:hover, .user-chip.selected { border-color: var(--accent); color: var(--accent); }
+
+    /* INPUT BAR */
+    .input-bar { display: flex; gap: 0.75rem; padding: 0.9rem 1.5rem; }
+    #msg-input { flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--fg); padding: 0.65rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.85rem; outline: none; transition: border-color 0.2s; }
+    #msg-input:focus { border-color: var(--accent); }
+    #msg-input.cmd-mode { border-color: #333; color: var(--accent); }
+    #msg-input:disabled { opacity: 0.4; }
+    #btn-send { background: var(--accent); color: var(--bg); border: none; padding: 0.65rem 1.25rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; cursor: pointer; letter-spacing: 0.08em; transition: background 0.2s; white-space: nowrap; }
+    #btn-send:hover { background: #d4eb3a; }
+    #btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* SIDEBAR */
+    .chat-sidebar { width: 190px; border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; background: #0d0d0d; }
+    .sidebar-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; padding: 0.9rem 1rem 0.5rem; border-bottom: 1px solid var(--border); }
+    #online-list { flex: 1; overflow-y: auto; padding: 0.4rem 0; }
+    .online-user { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.7rem; cursor: pointer; transition: background 0.1s; }
+    .online-user:hover { background: #141414; }
+    .online-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+    .online-uname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .online-uname.mod { color: var(--accent); }
+    .online-uname.mine { color: #666; }
+    .online-count { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); padding: 0.5rem 1rem; border-top: 1px solid var(--border); }
+
+    /* MOD POPUP */
+    #mod-popup { position: fixed; background: var(--card); border: 1px solid var(--border); z-index: 300; min-width: 170px; display: none; }
+    #mod-popup.open { display: block; }
+    .mod-popup-name { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--accent); padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--border); }
+    .mod-action { display: block; width: 100%; background: none; border: none; border-bottom: 1px solid #1a1a1a; color: var(--fg); padding: 0.5rem 0.9rem; font-family: 'Space Mono', monospace; font-size: 0.68rem; cursor: pointer; text-align: left; transition: background 0.1s; letter-spacing: 0.05em; }
+    .mod-action:last-child { border-bottom: none; }
+    .mod-action:hover { background: #1a1a1a; }
+    .mod-action.danger:hover { color: var(--danger); }
+    .mod-action.warn:hover { color: #ffaa47; }
+
+    /* BAN MODAL */
+    #ban-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 400; display: none; align-items: center; justify-content: center; }
+    #ban-modal.open { display: flex; }
+    .ban-box { background: var(--card); border: 1px solid var(--border); padding: 1.75rem; width: 320px; }
+    .ban-box h3 { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--danger); letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+    .ban-box p { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.25rem; }
+    .ban-box p strong { color: var(--fg); }
+    .ban-duration { display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .dur-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; cursor: pointer; transition: all 0.15s; }
+    .dur-btn.active { border-color: var(--danger); color: var(--danger); }
+    .custom-dur { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
+    .custom-dur input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--fg); padding: 0.45rem 0.7rem; font-family: 'Space Mono', monospace; font-size: 0.8rem; outline: none; }
+    .custom-dur input:focus { border-color: var(--danger); }
+    .custom-dur span { font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--muted); }
+    .ban-btns { display: flex; gap: 0.75rem; }
+    .btn-cancel-ban { flex: 1; background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.55rem; font-family: 'Space Mono', monospace; font-size: 0.7rem; cursor: pointer; }
+    .btn-cancel-ban:hover { border-color: var(--fg); color: var(--fg); }
+    .btn-do-ban { flex: 1; background: var(--danger); border: none; color: #fff; padding: 0.55rem; font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
+
+    /* FULLSCREEN EFFECTS */
+    #jumpscare { position: fixed; inset: 0; z-index: 9999; background: #000; display: none; align-items: center; justify-content: center; cursor: pointer; }
+    #jumpscare.open { display: flex; animation: jsBlink 0.1s infinite; }
+    #jumpscare-inner { font-size: min(30vw, 30vh); line-height: 1; animation: jsShake 0.05s infinite; }
+    @keyframes jsBlink { 0%,49%{background:#000} 50%,100%{background:#0a0000} }
+    @keyframes jsShake { 0%{transform:translate(-3px,-2px) rotate(-1deg)} 25%{transform:translate(3px,2px) rotate(1deg)} 50%{transform:translate(-2px,3px) rotate(0deg)} 75%{transform:translate(2px,-3px) rotate(1deg)} }
+
+    #screenmsg-overlay { position: fixed; inset: 0; z-index: 9990; background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center; text-align: center; padding: 2rem; }
+    #screenmsg-overlay.open { display: flex; }
+    #screenmsg-text { font-family: 'Space Mono', monospace; font-size: clamp(1.5rem, 5vw, 3.5rem); font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1.2; animation: fadeUp 0.3s ease; }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 5rem; right: 1.5rem; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 0.65rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.7rem; z-index: 600; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { border-left-color: var(--danger); }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);} }
+    @media (max-width: 500px) { .chat-sidebar { display: none; } nav { padding: 0.8rem 1rem; } #messages { padding: 0.75rem 1rem; } .input-bar { padding: 0.75rem 1rem; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">MK.DEV</a>
+  <div class="nav-right">
+    <span id="nav-user" style="display:none"></span>
+    <button class="nav-btn" id="btn-leave" style="display:none">LEAVE</button>
+  </div>
+</nav>
+
+<!-- JOIN -->
+<div id="join-screen">
+  <div class="join-box">
+    <h1>// CHAT</h1>
+    <p>myleskerschner.com/chat</p>
+    <div class="field"><label>Username</label><input type="text" id="join-name" placeholder="Enter a username" maxlength="20" autocomplete="off"/></div>
+    <div class="field" id="pw-field"><label>Password</label><input type="password" id="join-pw" placeholder="Protected username — enter password"/></div>
+    <button class="btn-join" id="btn-join">JOIN CHAT</button>
+    <div class="join-error" id="join-error"></div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chat-screen">
+  <div class="chat-main">
+    <div id="messages"></div>
+    <div class="input-area">
+      <!-- command autocomplete -->
+      <div id="cmd-popup"></div>
+      <!-- user picker -->
+      <div id="user-picker">
+        <div class="user-pick-label">Select a user — Tab to cycle</div>
+        <div class="user-pick-list" id="user-pick-list"></div>
+      </div>
+      <div class="input-bar">
+        <input type="text" id="msg-input" placeholder="Type a message or / for commands…" maxlength="500" autocomplete="off" disabled/>
+        <button id="btn-send" disabled>SEND</button>
+      </div>
+    </div>
+  </div>
+  <div class="chat-sidebar">
+    <div class="sidebar-label">Online</div>
+    <div id="online-list"></div>
+    <div class="online-count" id="online-count">0 online</div>
+  </div>
+</div>
+
+<!-- MOD POPUP -->
+<div id="mod-popup">
+  <div class="mod-popup-name" id="popup-uname"></div>
+  <button class="mod-action warn" id="popup-jumpscare">👻 JUMPSCARE</button>
+  <button class="mod-action warn" id="popup-typescare">💀 TYPESCARE</button>
+  <button class="mod-action" id="popup-kick">⚡ KICK</button>
+  <button class="mod-action danger" id="popup-ban">🚫 BAN…</button>
+</div>
+
+<!-- BAN MODAL -->
+<div id="ban-modal">
+  <div class="ban-box">
+    <h3>🚫 BAN USER</h3>
+    <p>Ban <strong id="ban-target-name"></strong> for how long?</p>
+    <div class="ban-duration">
+      <button class="dur-btn active" data-min="30">30m</button>
+      <button class="dur-btn" data-min="60">1h</button>
+      <button class="dur-btn" data-min="360">6h</button>
+      <button class="dur-btn" data-min="1440">24h</button>
+      <button class="dur-btn" data-min="custom">Custom</button>
+    </div>
+    <div class="custom-dur" id="custom-dur" style="display:none">
+      <input type="number" id="custom-min" min="1" value="60"/>
+      <span>minutes</span>
+    </div>
+    <div class="ban-btns">
+      <button class="btn-cancel-ban" id="btn-cancel-ban">CANCEL</button>
+      <button class="btn-do-ban" id="btn-do-ban">BAN</button>
+    </div>
+  </div>
+</div>
+
+<!-- FULLSCREEN EFFECTS -->
+<div id="jumpscare"><div id="jumpscare-inner">😱</div></div>
+<div id="screenmsg-overlay"><div id="screenmsg-text"></div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://controlapi.myleskerschner.com';
+const hdr = () => ({'Content-Type':'application/json','X-Chat-Token':token});
+
+let token=null, username=null, isMod=false, lastTs=0;
+let pollTimer=null, pingTimer=null;
+let onlineUsers=[];   // [{username, mod}]
+let banTarget=null, banMinutes=30, popupTarget=null;
+let typescareTargets=new Set(); // usernames who get scared on next send
+
+// ── COMMAND DEFINITIONS ──────────────────────────────────────────────────────
+const ALL_COMMANDS = [
+  { cmd:'/shout',     args:'<message>',    desc:'Send a big highlighted message', modOnly:false },
+  { cmd:'/jumpscare', args:'<username>',   desc:'Fullscreen jumpscare a user',    modOnly:true  },
+  { cmd:'/typescare', args:'<username>',   desc:'Scare them when they next type', modOnly:true  },
+  { cmd:'/screen',    args:'<message>',    desc:'Fill their screen with a message',modOnly:true  },
+  { cmd:'/kick',      args:'<username>',   desc:'Remove a user from the chat',    modOnly:true  },
+  { cmd:'/ban',       args:'<username> <minutes>', desc:'Ban a user by IP',       modOnly:true  },
+];
+
+const USER_ARG_CMDS = ['/jumpscare','/typescare','/kick','/ban'];
+
+// ── TOAST ────────────────────────────────────────────────────────────────────
+function toast(msg, isError=false) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show'+(isError?' error':'');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ── JOIN ─────────────────────────────────────────────────────────────────────
+['join-name','join-pw'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')tryJoin();}));
+document.getElementById('btn-join').addEventListener('click', tryJoin);
+document.getElementById('join-name').addEventListener('input', ()=>document.getElementById('join-error').textContent='');
+
+async function tryJoin() {
+  const name=document.getElementById('join-name').value.trim();
+  const pw=document.getElementById('join-pw').value;
+  const err=document.getElementById('join-error');
+  const btn=document.getElementById('btn-join');
+  if(!name){err.textContent='Enter a username.';return;}
+  btn.disabled=true; btn.textContent='JOINING…'; err.textContent='';
+  try {
+    const res=await fetch(API+'/chat/join',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:name,password:pw})});
+    const data=await res.json();
+    if(res.ok){token=data.token;username=data.username;isMod=data.mod;enterChat();}
+    else if(data.protected){document.getElementById('pw-field').style.display='block';document.getElementById('join-pw').focus();err.textContent=data.error;}
+    else err.textContent=data.error||'Failed to join.';
+  } catch(e){err.textContent='Cannot reach server.';}
+  btn.disabled=false; btn.textContent='JOIN CHAT';
+}
+
+function enterChat() {
+  document.getElementById('join-screen').classList.add('hidden');
+  document.getElementById('chat-screen').classList.add('active');
+  document.getElementById('msg-input').disabled=false;
+  document.getElementById('btn-send').disabled=false;
+  document.getElementById('btn-leave').style.display='block';
+  const nu=document.getElementById('nav-user');
+  nu.style.display='block';
+  nu.innerHTML=escHtml(username)+(isMod?'<span class="mod-badge">MOD</span>':'');
+  document.getElementById('msg-input').focus();
+  startPolling(); startPing();
+  window.addEventListener('beforeunload', doLeave);
+}
+
+// ── LEAVE ────────────────────────────────────────────────────────────────────
+document.getElementById('btn-leave').addEventListener('click',()=>{doLeave();location.reload();});
+function doLeave(){
+  if(!token)return;
+  navigator.sendBeacon(API+'/chat/leave',new Blob([JSON.stringify({})],{type:'application/json'}));
+  clearInterval(pollTimer); clearInterval(pingTimer); token=null;
+}
+
+// ── AUTOCOMPLETE STATE ───────────────────────────────────────────────────────
+let cmdIndex=-1;   // selected command index
+let userIndex=-1;  // selected user chip index
+let cmdOpen=false;
+let userPickOpen=false;
+let currentStage='idle'; // 'idle' | 'cmd' | 'arg1' | 'arg2'
+let selectedCmd=null;
+
+function getAvailableCommands() {
+  return ALL_COMMANDS.filter(c=>isMod||!c.modOnly);
+}
+
+function parseInput(val) {
+  if(!val.startsWith('/')) return {stage:'idle'};
+  const parts = val.split(' ');
+  const cmdStr = parts[0].toLowerCase();
+  if(parts.length===1) return {stage:'cmd', partial:cmdStr};
+  const cmdDef = getAvailableCommands().find(c=>c.cmd===cmdStr);
+  if(!cmdDef) return {stage:'unknown'};
+  if(USER_ARG_CMDS.includes(cmdStr) && parts.length===2) return {stage:'arg1', cmd:cmdDef, partial:parts[1]};
+  if(cmdStr==='/ban' && parts.length===3) return {stage:'arg2', cmd:cmdDef};
+  return {stage:'done', cmd:cmdDef};
+}
+
+// ── INPUT HANDLER ────────────────────────────────────────────────────────────
+const input = document.getElementById('msg-input');
+
+input.addEventListener('input', updateAutocomplete);
+input.addEventListener('keydown', handleInputKey);
+
+function updateAutocomplete() {
+  const val = input.value;
+  const parsed = parseInput(val);
+  currentStage = parsed.stage;
+  selectedCmd = parsed.cmd || null;
+
+  // Toggle cmd mode style
+  input.classList.toggle('cmd-mode', val.startsWith('/'));
+
+  closeCmdPopup(); closeUserPicker();
+
+  if(parsed.stage==='cmd') {
+    showCmdPopup(parsed.partial);
+  } else if(parsed.stage==='arg1' && parsed.cmd && USER_ARG_CMDS.includes(parsed.cmd.cmd)) {
+    showUserPicker(parsed.partial);
+  } else if(parsed.stage==='arg2' && parsed.cmd?.cmd==='/ban') {
+    // show hint for minutes — just keep input open, no special UI needed
+  }
+}
+
+// ── CMD POPUP ────────────────────────────────────────────────────────────────
+function showCmdPopup(partial) {
+  const popup = document.getElementById('cmd-popup');
+  const cmds  = getAvailableCommands().filter(c=>c.cmd.startsWith(partial));
+  if(!cmds.length){popup.classList.remove('open');cmdOpen=false;return;}
+
+  cmdIndex = -1;
+  popup.innerHTML = '';
+
+  // separator
+  const sep=document.createElement('div');
+  sep.className='cmd-sep'; sep.textContent='Commands — Tab to cycle • Enter to select';
+  popup.appendChild(sep);
+
+  cmds.forEach((c,i)=>{
+    const el=document.createElement('div');
+    el.className='cmd-item';
+    el.innerHTML=`<span class="cmd-name">${escHtml(c.cmd)} <span style="color:var(--muted)">${escHtml(c.args)}</span></span><span class="cmd-desc">${escHtml(c.desc)}</span>${c.modOnly?'<span class="cmd-hint">MOD</span>':''}`;
+    el.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      selectCmd(c);
+    });
+    popup.appendChild(el);
+  });
+
+  popup.classList.add('open');
+  cmdOpen=true;
+}
+
+function closeCmdPopup(){
+  document.getElementById('cmd-popup').classList.remove('open');
+  cmdOpen=false; cmdIndex=-1;
+}
+
+function selectCmd(c){
+  input.value=c.cmd+' ';
+  closeCmdPopup();
+  if(USER_ARG_CMDS.includes(c.cmd)) showUserPicker('');
+  input.focus();
+  currentStage='arg1'; selectedCmd=c;
+}
+
+function cycleCmdIndex(dir){
+  const popup=document.getElementById('cmd-popup');
+  const items=[...popup.querySelectorAll('.cmd-item')];
+  if(!items.length) return;
+  cmdIndex=(cmdIndex+dir+items.length)%items.length;
+  items.forEach((el,i)=>el.classList.toggle('selected',i===cmdIndex));
+}
+
+// ── USER PICKER ──────────────────────────────────────────────────────────────
+function showUserPicker(partial){
+  const picker=document.getElementById('user-picker');
+  const list=document.getElementById('user-pick-list');
+  const filtered=onlineUsers.filter(u=>u.username.toLowerCase()!==username.toLowerCase()&&u.username.toLowerCase().startsWith(partial.toLowerCase()));
+  if(!filtered.length){picker.classList.remove('open');userPickOpen=false;return;}
+
+  userIndex=-1;
+  list.innerHTML='';
+  filtered.forEach((u,i)=>{
+    const chip=document.createElement('div');
+    chip.className='user-chip'+(u.mod?' mod-user':'');
+    chip.textContent=u.username;
+    chip.addEventListener('mousedown',e=>{e.preventDefault();selectUser(u.username);});
+    list.appendChild(chip);
+  });
+
+  picker.classList.add('open');
+  userPickOpen=true;
+}
+
+function closeUserPicker(){
+  document.getElementById('user-picker').classList.remove('open');
+  userPickOpen=false; userIndex=-1;
+}
+
+function selectUser(uname){
+  const parts=input.value.split(' ');
+  parts[1]=uname;
+  input.value=parts.join(' ')+' ';
+  closeUserPicker();
+  input.focus();
+}
+
+function cycleUserIndex(dir){
+  const chips=[...document.getElementById('user-pick-list').querySelectorAll('.user-chip')];
+  if(!chips.length) return;
+  userIndex=(userIndex+dir+chips.length)%chips.length;
+  chips.forEach((el,i)=>el.classList.toggle('selected',i===userIndex));
+}
+
+// ── KEY HANDLER ──────────────────────────────────────────────────────────────
+function handleInputKey(e){
+  if(e.key==='Tab'){
+    e.preventDefault();
+    if(cmdOpen){
+      cycleCmdIndex(e.shiftKey?-1:1);
+    } else if(userPickOpen){
+      cycleUserIndex(e.shiftKey?-1:1);
+    }
+    return;
+  }
+
+  if(e.key==='Enter'){
+    e.preventDefault();
+    // if something is selected in cmd popup
+    if(cmdOpen && cmdIndex>=0){
+      const items=[...document.getElementById('cmd-popup').querySelectorAll('.cmd-item')];
+      items[cmdIndex]?.dispatchEvent(new MouseEvent('mousedown'));
+      return;
+    }
+    // if something selected in user picker
+    if(userPickOpen && userIndex>=0){
+      const chips=[...document.getElementById('user-pick-list').querySelectorAll('.user-chip')];
+      chips[userIndex]?.dispatchEvent(new MouseEvent('mousedown'));
+      return;
+    }
+    sendMessage();
+    return;
+  }
+
+  if(e.key==='Escape'){
+    closeCmdPopup(); closeUserPicker();
+    if(input.value.startsWith('/')) input.value='';
+    input.classList.remove('cmd-mode');
+    return;
+  }
+}
+
+// ── SEND ─────────────────────────────────────────────────────────────────────
+document.getElementById('btn-send').addEventListener('click', sendMessage);
+
+async function sendMessage(){
+  const text=input.value.trim();
+  if(!text||!token) return;
+  closeCmdPopup(); closeUserPicker();
+  input.value=''; input.classList.remove('cmd-mode');
+
+  // local typescare check — if this user has a pending typescare
+  if(typescareTargets.has(username.toLowerCase())){
+    typescareTargets.delete(username.toLowerCase());
+    triggerJumpscare();
+  }
+
+  try {
+    const res=await fetch(API+'/chat/send',{method:'POST',headers:hdr(),body:JSON.stringify({text})});
+    const d=await res.json();
+    if(!res.ok) toast(d.error||'Error sending',true);
+  } catch(e){toast('Failed to send',true);}
+}
+
+// ── POLL ─────────────────────────────────────────────────────────────────────
+function startPolling(){pollTimer=setInterval(fetchMessages,1500);fetchMessages();}
+function startPing(){
+  pingTimer=setInterval(async()=>{
+    if(!token)return;
+    try{const r=await fetch(API+'/chat/ping',{method:'POST',headers:hdr()});if(r.status===401)doLeave();}catch(e){}
+  },8000);
+}
+
+async function fetchMessages(){
+  if(!token)return;
+  try{
+    const res=await fetch(API+'/chat/messages?since='+lastTs,{headers:hdr()});
+    if(res.status===401){toast('Session expired',true);doLeave();return;}
+    const data=await res.json();
+    if(data.messages?.length){
+      data.messages.forEach(handleMessage);
+      lastTs=Math.max(...data.messages.map(m=>m.ts));
+    }
+    if(data.online) renderOnline(data.online);
+  }catch(e){}
+}
+
+// ── MESSAGE HANDLER ──────────────────────────────────────────────────────────
+function handleMessage(msg){
+  const me = username.toLowerCase();
+
+  // special types that target specific users
+  if(msg.type==='jumpscare'){
+    if(msg.target===me) triggerJumpscare();
+    return; // don't show in chat
+  }
+  if(msg.type==='typescare'){
+    if(msg.target===me) typescareTargets.add(me);
+    return;
+  }
+  if(msg.type==='screenmsg'){
+    if(!msg.target || msg.target===me) triggerScreenMsg(msg.text);
+    return;
+  }
+
+  appendMessage(msg);
+}
+
+function appendMessage(msg){
+  const box=document.getElementById('messages');
+  const el=document.createElement('div');
+  const isMe=msg.username===username;
+  el.className='msg '+(msg.type!=='message'?msg.type:'');
+
+  const d=new Date(msg.ts*1000);
+  const t=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+
+  if(msg.type!=='message'&&msg.type!=='shout'){
+    el.innerHTML=`<span class="msg-time">${t}</span><span class="msg-text">${escHtml(msg.text)}</span>`;
+  } else {
+    const nc=isMe?'mine':msg.mod?'mod':'';
+    const badge=msg.mod&&!isMe?'<span class="mod-badge-inline">MOD</span>':'';
+    el.innerHTML=`<span class="msg-time">${t}</span><span class="msg-name ${nc}" data-user="${escHtml(msg.username)}">${escHtml(msg.username)}${badge}</span><span class="msg-text">${escHtml(msg.text)}</span>`;
+    if(isMod&&!isMe) el.querySelector('.msg-name').addEventListener('click',e=>showModPopup(msg.username,e));
+  }
+
+  const atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<80;
+  box.appendChild(el);
+  if(atBottom) box.scrollTop=box.scrollHeight;
+}
+
+// ── EFFECTS ──────────────────────────────────────────────────────────────────
+function triggerJumpscare(){
+  const el=document.getElementById('jumpscare');
+  el.classList.add('open');
+  // random scary emoji
+  const emojis=['😱','👻','💀','🎃','👹','🙀','😈','🤡'];
+  document.getElementById('jumpscare-inner').textContent=emojis[Math.floor(Math.random()*emojis.length)];
+  setTimeout(()=>el.classList.remove('open'),3000);
+}
+
+document.getElementById('jumpscare').addEventListener('click',()=>{
+  document.getElementById('jumpscare').classList.remove('open');
+});
+
+function triggerScreenMsg(text){
+  const el=document.getElementById('screenmsg-overlay');
+  document.getElementById('screenmsg-text').textContent=text;
+  el.classList.add('open');
+  setTimeout(()=>el.classList.remove('open'),4000);
+}
+
+document.getElementById('screenmsg-overlay').addEventListener('click',()=>{
+  document.getElementById('screenmsg-overlay').classList.remove('open');
+});
+
+// ── ONLINE LIST ──────────────────────────────────────────────────────────────
+function renderOnline(online){
+  onlineUsers=online;
+  const list=document.getElementById('online-list');
+  list.innerHTML=online.map(u=>{
+    const isMe=u.username===username;
+    const click=isMod&&!isMe?`onclick="showModPopup('${escHtml(u.username)}',event)"`:'' ;
+    return `<div class="online-user" ${click}>
+      <span class="online-dot"></span>
+      <span class="online-uname ${u.mod?'mod':''} ${isMe?'mine':''}">${escHtml(u.username)}</span>
+      ${u.mod?'<span style="font-size:0.5rem;color:var(--accent)">MOD</span>':''}
+    </div>`;
+  }).join('');
+  document.getElementById('online-count').textContent=online.length+' online';
+}
+
+// ── MOD POPUP ────────────────────────────────────────────────────────────────
+function showModPopup(user, event){
+  if(!isMod||user===username) return;
+  popupTarget=user;
+  document.getElementById('popup-uname').textContent=user;
+  const popup=document.getElementById('mod-popup');
+  popup.classList.add('open');
+  const x=Math.min(event.clientX, window.innerWidth-200);
+  const y=Math.min(event.clientY, window.innerHeight-180);
+  popup.style.left=x+'px'; popup.style.top=y+'px';
+  event.stopPropagation();
+}
+
+document.addEventListener('click',()=>document.getElementById('mod-popup').classList.remove('open'));
+
+// mod popup actions
+document.getElementById('popup-jumpscare').addEventListener('click',()=>modCmd('/jumpscare'));
+document.getElementById('popup-typescare').addEventListener('click',()=>modCmd('/typescare'));
+document.getElementById('popup-kick').addEventListener('click',()=>modCmd('/kick'));
+document.getElementById('popup-ban').addEventListener('click',()=>{
+  document.getElementById('mod-popup').classList.remove('open');
+  banTarget=popupTarget;
+  document.getElementById('ban-target-name').textContent=banTarget;
+  document.getElementById('ban-modal').classList.add('open');
+});
+
+async function modCmd(cmd){
+  document.getElementById('mod-popup').classList.remove('open');
+  if(!popupTarget) return;
+  // fill input with command and username
+  if(cmd==='/kick'){
+    input.value='/kick '+popupTarget;
+    await sendMessage();
+  } else if(cmd==='/jumpscare'||cmd==='/typescare'){
+    input.value=cmd+' '+popupTarget;
+    await sendMessage();
+  }
+}
+
+async function doSendCmd(text){
+  try{
+    const res=await fetch(API+'/chat/send',{method:'POST',headers:hdr(),body:JSON.stringify({text})});
+    const d=await res.json();
+    if(!res.ok) toast(d.error||'Error',true);
+  }catch(e){toast('Error',true);}
+}
+
+// ── BAN MODAL ────────────────────────────────────────────────────────────────
+document.querySelectorAll('.dur-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    if(btn.dataset.min==='custom'){
+      document.getElementById('custom-dur').style.display='flex';
+      banMinutes=parseInt(document.getElementById('custom-min').value)||60;
+    } else {
+      document.getElementById('custom-dur').style.display='none';
+      banMinutes=parseInt(btn.dataset.min);
+    }
+  });
+});
+document.getElementById('custom-min').addEventListener('input',e=>banMinutes=parseInt(e.target.value)||60);
+document.getElementById('btn-cancel-ban').addEventListener('click',()=>{document.getElementById('ban-modal').classList.remove('open');banTarget=null;});
+document.getElementById('btn-do-ban').addEventListener('click',async()=>{
+  if(!banTarget) return;
+  document.getElementById('ban-modal').classList.remove('open');
+  input.value=`/ban ${banTarget} ${banMinutes}`;
+  await sendMessage();
+  banTarget=null;
+});
+
+// ── UTIL ─────────────────────────────────────────────────────────────────────
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
