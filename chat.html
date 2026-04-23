@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat — Myles Kerschner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0a; --fg: #f0ede6; --accent: #e8ff47;
+      --muted: #555; --card: #141414; --border: #222;
+      --danger: #ff4747; --success: #47ff8a; --sys: #7eb8ff;
+    }
+    body { background: var(--bg); color: var(--fg); font-family: 'Syne', sans-serif; min-height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 999; opacity: 0.4; }
+
+    /* NAV */
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid var(--border); background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); flex-shrink: 0; z-index: 10; }
+    .nav-logo { font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--accent); letter-spacing: 0.1em; text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; }
+    #nav-user { color: var(--accent); font-size: 0.72rem; }
+    #nav-user .mod-badge { color: var(--bg); background: var(--accent); font-size: 0.55rem; padding: 0.1rem 0.35rem; margin-left: 0.4rem; letter-spacing: 0.08em; }
+    .nav-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0.7rem; font-family: 'Space Mono', monospace; font-size: 0.68rem; cursor: pointer; letter-spacing: 0.08em; transition: all 0.2s; }
+    .nav-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* JOIN SCREEN */
+    #join-screen { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    #join-screen.hidden { display: none; }
+    .join-box { width: 100%; max-width: 400px; border: 1px solid var(--border); background: var(--card); padding: 2.5rem; animation: fadeUp 0.4s ease forwards; }
+    .join-box h1 { font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--accent); letter-spacing: 0.2em; margin-bottom: 0.4rem; }
+    .join-box p { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); margin-bottom: 2rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.4rem; }
+    .field input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--fg); padding: 0.7rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.85rem; outline: none; transition: border-color 0.2s; }
+    .field input:focus { border-color: var(--accent); }
+    .btn-join { width: 100%; background: var(--accent); color: var(--bg); border: none; padding: 0.75rem; font-family: 'Space Mono', monospace; font-size: 0.85rem; font-weight: 700; cursor: pointer; letter-spacing: 0.1em; transition: background 0.2s; margin-top: 0.5rem; }
+    .btn-join:hover { background: #d4eb3a; }
+    .btn-join:disabled { opacity: 0.5; cursor: not-allowed; }
+    .join-error { color: var(--danger); font-family: 'Space Mono', monospace; font-size: 0.72rem; margin-top: 0.75rem; min-height: 1rem; }
+    #pw-field { display: none; }
+
+    /* CHAT LAYOUT */
+    #chat-screen { flex: 1; display: none; overflow: hidden; }
+    #chat-screen.active { display: flex; }
+    .chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    /* MESSAGES */
+    #messages { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; scroll-behavior: smooth; }
+    #messages::-webkit-scrollbar { width: 4px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb { background: #222; }
+
+    .msg { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.35rem 0.5rem; border-radius: 2px; transition: background 0.15s; }
+    .msg:hover { background: #111; }
+    .msg-time { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: #333; white-space: nowrap; margin-top: 0.2rem; flex-shrink: 0; }
+    .msg-name { font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; cursor: pointer; transition: opacity 0.15s; }
+    .msg-name:hover { opacity: 0.7; }
+    .msg-name.mod { color: var(--accent); }
+    .msg-name.mine { color: #aaa; }
+    .msg-name.sys { color: var(--sys); cursor: default; }
+    .msg-text { font-size: 0.88rem; line-height: 1.5; word-break: break-word; flex: 1; }
+    .msg.system .msg-text { color: var(--sys); font-family: 'Space Mono', monospace; font-size: 0.72rem; font-style: italic; }
+    .msg.kick .msg-text { color: var(--warn, #ffaa47); font-family: 'Space Mono', monospace; font-size: 0.72rem; }
+    .msg.ban .msg-text { color: var(--danger); font-family: 'Space Mono', monospace; font-size: 0.72rem; }
+    .mod-badge-inline { background: var(--accent); color: var(--bg); font-size: 0.5rem; padding: 0.1rem 0.3rem; margin-left: 0.3rem; vertical-align: middle; letter-spacing: 0.06em; }
+
+    /* INPUT BAR */
+    .input-bar { display: flex; gap: 0.75rem; padding: 0.9rem 1.5rem; border-top: 1px solid var(--border); background: rgba(10,10,10,0.8); flex-shrink: 0; }
+    #msg-input { flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--fg); padding: 0.65rem 1rem; font-family: 'Syne', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+    #msg-input:focus { border-color: var(--accent); }
+    #msg-input:disabled { opacity: 0.4; }
+    #btn-send { background: var(--accent); color: var(--bg); border: none; padding: 0.65rem 1.25rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; font-weight: 700; cursor: pointer; letter-spacing: 0.08em; transition: background 0.2s; white-space: nowrap; }
+    #btn-send:hover { background: #d4eb3a; }
+    #btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* SIDEBAR */
+    .chat-sidebar { width: 200px; border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; background: #0d0d0d; }
+    .sidebar-label { font-family: 'Space Mono', monospace; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; padding: 1rem 1rem 0.5rem; border-bottom: 1px solid var(--border); }
+    #online-list { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
+    .online-user { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; transition: background 0.15s; }
+    .online-user:hover { background: #141414; }
+    .online-user .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+    .online-user .uname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .online-user .uname.mod { color: var(--accent); }
+    .online-user .uname.mine { color: #888; }
+    .online-count { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); padding: 0.5rem 1rem; border-top: 1px solid var(--border); }
+
+    /* MOD POPUP */
+    #mod-popup { position: fixed; background: var(--card); border: 1px solid var(--border); padding: 0; z-index: 300; min-width: 180px; display: none; }
+    #mod-popup.open { display: block; }
+    .mod-popup-name { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--accent); padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
+    .mod-action { display: block; width: 100%; background: none; border: none; border-bottom: 1px solid #1a1a1a; color: var(--fg); padding: 0.55rem 0.9rem; font-family: 'Space Mono', monospace; font-size: 0.7rem; cursor: pointer; text-align: left; transition: background 0.1s; letter-spacing: 0.06em; }
+    .mod-action:last-child { border-bottom: none; }
+    .mod-action:hover { background: #1a1a1a; }
+    .mod-action.danger:hover { color: var(--danger); }
+
+    /* BAN DURATION MODAL */
+    #ban-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 400; display: none; align-items: center; justify-content: center; }
+    #ban-modal.open { display: flex; }
+    .ban-box { background: var(--card); border: 1px solid var(--border); padding: 1.75rem; width: 320px; }
+    .ban-box h3 { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--danger); letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+    .ban-box p { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.25rem; }
+    .ban-box p strong { color: var(--fg); }
+    .ban-duration { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .dur-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.7rem; font-family: 'Space Mono', monospace; font-size: 0.68rem; cursor: pointer; transition: all 0.15s; }
+    .dur-btn.active { border-color: var(--danger); color: var(--danger); }
+    .custom-dur { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
+    .custom-dur input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--fg); padding: 0.5rem 0.75rem; font-family: 'Space Mono', monospace; font-size: 0.8rem; outline: none; }
+    .custom-dur input:focus { border-color: var(--danger); }
+    .custom-dur span { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+    .ban-btns { display: flex; gap: 0.75rem; }
+    .btn-cancel-ban { flex: 1; background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.55rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; cursor: pointer; }
+    .btn-cancel-ban:hover { border-color: var(--fg); color: var(--fg); }
+    .btn-do-ban { flex: 1; background: var(--danger); border: none; color: #fff; padding: 0.55rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; font-weight: 700; cursor: pointer; }
+    .btn-do-ban:hover { background: #e03333; }
+
+    /* MISC */
+    .toast { position: fixed; bottom: 5rem; right: 1.5rem; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.72rem; z-index: 600; opacity: 0; transform: translateY(8px); transition: all 0.3s; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { border-left-color: var(--danger); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);} }
+    @media (max-width: 500px) { .chat-sidebar { display: none; } nav { padding: 0.8rem 1rem; } #messages { padding: 0.75rem 1rem; } .input-bar { padding: 0.75rem 1rem; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">MK.DEV</a>
+  <div class="nav-right">
+    <span id="nav-user" style="display:none"></span>
+    <button class="nav-btn" id="btn-leave" style="display:none">LEAVE</button>
+  </div>
+</nav>
+
+<!-- JOIN -->
+<div id="join-screen">
+  <div class="join-box">
+    <h1>// CHAT</h1>
+    <p>myleskerschner.com/chat</p>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="join-name" placeholder="Enter a username" maxlength="20" autocomplete="off"/>
+    </div>
+    <div class="field" id="pw-field">
+      <label>Password</label>
+      <input type="password" id="join-pw" placeholder="Protected username — enter password"/>
+    </div>
+    <button class="btn-join" id="btn-join">JOIN CHAT</button>
+    <div class="join-error" id="join-error"></div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chat-screen">
+  <div class="chat-main">
+    <div id="messages"></div>
+    <div class="input-bar">
+      <input type="text" id="msg-input" placeholder="Type a message..." maxlength="500" autocomplete="off" disabled/>
+      <button id="btn-send" disabled>SEND</button>
+    </div>
+  </div>
+  <div class="chat-sidebar">
+    <div class="sidebar-label">Online</div>
+    <div id="online-list"></div>
+    <div class="online-count" id="online-count">0 online</div>
+  </div>
+</div>
+
+<!-- MOD POPUP -->
+<div id="mod-popup">
+  <div class="mod-popup-name" id="popup-uname"></div>
+  <button class="mod-action" id="popup-kick">⚡ KICK</button>
+  <button class="mod-action danger" id="popup-ban">🚫 BAN...</button>
+</div>
+
+<!-- BAN MODAL -->
+<div id="ban-modal">
+  <div class="ban-box">
+    <h3>🚫 BAN USER</h3>
+    <p>Ban <strong id="ban-target-name"></strong> for how long?</p>
+    <div class="ban-duration">
+      <button class="dur-btn active" data-min="30">30 min</button>
+      <button class="dur-btn" data-min="60">1 hr</button>
+      <button class="dur-btn" data-min="360">6 hr</button>
+      <button class="dur-btn" data-min="1440">24 hr</button>
+      <button class="dur-btn" data-min="custom">Custom</button>
+    </div>
+    <div class="custom-dur" id="custom-dur" style="display:none">
+      <input type="number" id="custom-min" min="1" max="99999" value="60" placeholder="60"/>
+      <span>minutes</span>
+    </div>
+    <div class="ban-btns">
+      <button class="btn-cancel-ban" id="btn-cancel-ban">CANCEL</button>
+      <button class="btn-do-ban" id="btn-do-ban">BAN</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API     = 'https://controlapi.myleskerschner.com';
+  const headers = () => ({ 'Content-Type': 'application/json', 'X-Chat-Token': token });
+
+  let token    = null;
+  let username = null;
+  let isMod    = false;
+  let lastTs   = 0;
+  let pollTimer = null;
+  let pingTimer = null;
+  let banTarget = null;
+  let banMinutes = 30;
+  let popupTarget = null;
+
+  // ── TOAST ────────────────────────────────────────────────────
+  function toast(msg, isError = false) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast show' + (isError ? ' error' : '');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  // ── JOIN ─────────────────────────────────────────────────────
+  document.getElementById('join-name').addEventListener('input', () => {
+    document.getElementById('join-error').textContent = '';
+  });
+
+  document.getElementById('join-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') tryJoin();
+  });
+  document.getElementById('join-pw').addEventListener('keydown', e => {
+    if (e.key === 'Enter') tryJoin();
+  });
+  document.getElementById('btn-join').addEventListener('click', tryJoin);
+
+  async function tryJoin() {
+    const name = document.getElementById('join-name').value.trim();
+    const pw   = document.getElementById('join-pw').value;
+    const err  = document.getElementById('join-error');
+    const btn  = document.getElementById('btn-join');
+    if (!name) { err.textContent = 'Enter a username.'; return; }
+    btn.disabled = true; btn.textContent = 'JOINING...'; err.textContent = '';
+    try {
+      const res  = await fetch(API + '/chat/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: name, password: pw })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        token    = data.token;
+        username = data.username;
+        isMod    = data.mod;
+        enterChat();
+      } else if (data.protected) {
+        // Show password field
+        document.getElementById('pw-field').style.display = 'block';
+        document.getElementById('join-pw').focus();
+        err.textContent = data.error;
+      } else {
+        err.textContent = data.error || 'Failed to join.';
+      }
+    } catch(e) {
+      err.textContent = 'Cannot reach server.';
+    }
+    btn.disabled = false; btn.textContent = 'JOIN CHAT';
+  }
+
+  function enterChat() {
+    document.getElementById('join-screen').classList.add('hidden');
+    document.getElementById('chat-screen').classList.add('active');
+    document.getElementById('msg-input').disabled = false;
+    document.getElementById('btn-send').disabled  = false;
+    document.getElementById('btn-leave').style.display = 'block';
+    const navUser = document.getElementById('nav-user');
+    navUser.style.display = 'block';
+    navUser.innerHTML = username + (isMod ? '<span class="mod-badge">MOD</span>' : '');
+    document.getElementById('msg-input').focus();
+    startPolling();
+    startPing();
+    window.addEventListener('beforeunload', doLeave);
+  }
+
+  // ── LEAVE ────────────────────────────────────────────────────
+  document.getElementById('btn-leave').addEventListener('click', () => {
+    doLeave();
+    location.reload();
+  });
+
+  function doLeave() {
+    if (!token) return;
+    navigator.sendBeacon(API + '/chat/leave', new Blob(
+      [JSON.stringify({})], {type:'application/json'}
+    ));
+    clearInterval(pollTimer);
+    clearInterval(pingTimer);
+    token = null;
+  }
+
+  // ── SEND ─────────────────────────────────────────────────────
+  document.getElementById('btn-send').addEventListener('click', sendMessage);
+  document.getElementById('msg-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  async function sendMessage() {
+    const input = document.getElementById('msg-input');
+    const text  = input.value.trim();
+    if (!text || !token) return;
+    input.value = '';
+    try {
+      await fetch(API + '/chat/send', {
+        method: 'POST', headers: headers(),
+        body: JSON.stringify({ text })
+      });
+    } catch(e) { toast('Failed to send message', true); }
+  }
+
+  // ── POLL ─────────────────────────────────────────────────────
+  function startPolling() {
+    pollTimer = setInterval(fetchMessages, 1500);
+    fetchMessages();
+  }
+
+  async function fetchMessages() {
+    if (!token) return;
+    try {
+      const res = await fetch(API + '/chat/messages?since=' + lastTs, { headers: headers() });
+      if (res.status === 401) { toast('Session expired — please rejoin', true); doLeave(); return; }
+      const data = await res.json();
+      if (data.messages && data.messages.length) {
+        data.messages.forEach(appendMessage);
+        lastTs = Math.max(...data.messages.map(m => m.ts));
+      }
+      if (data.online) renderOnline(data.online);
+    } catch(e) {}
+  }
+
+  function startPing() {
+    pingTimer = setInterval(async () => {
+      if (!token) return;
+      try {
+        const res = await fetch(API + '/chat/ping', { method: 'POST', headers: headers() });
+        if (res.status === 401) { doLeave(); }
+      } catch(e) {}
+    }, 8000);
+  }
+
+  // ── RENDER MESSAGES ──────────────────────────────────────────
+  function appendMessage(msg) {
+    const box  = document.getElementById('messages');
+    const el   = document.createElement('div');
+    const isMe = msg.username === username;
+    el.className = 'msg ' + (msg.type !== 'message' ? msg.type : '');
+
+    const d = new Date(msg.ts * 1000);
+    const t = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+
+    if (msg.type !== 'message') {
+      el.innerHTML = `<span class="msg-time">${t}</span><span class="msg-text">${escHtml(msg.text)}</span>`;
+    } else {
+      const nameClass = isMe ? 'mine' : msg.mod ? 'mod' : '';
+      const badge     = msg.mod && !isMe ? '<span class="mod-badge-inline">MOD</span>' : '';
+      el.innerHTML = `
+        <span class="msg-time">${t}</span>
+        <span class="msg-name ${nameClass}" data-user="${escHtml(msg.username)}">${escHtml(msg.username)}${badge}</span>
+        <span class="msg-text">${escHtml(msg.text)}</span>
+      `;
+      // mod can click other users' names
+      if (isMod && !isMe) {
+        el.querySelector('.msg-name').addEventListener('click', e => showModPopup(msg.username, e));
+      }
+    }
+
+    const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+    box.appendChild(el);
+    if (atBottom) box.scrollTop = box.scrollHeight;
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── ONLINE LIST ──────────────────────────────────────────────
+  function renderOnline(online) {
+    const list = document.getElementById('online-list');
+    list.innerHTML = online.map(u => {
+      const isMe = u.username === username;
+      return `<div class="online-user" ${isMod && !isMe ? `onclick="showModPopup('${escHtml(u.username)}',event)"` : ''}>
+        <span class="dot"></span>
+        <span class="uname ${u.mod ? 'mod' : ''} ${isMe ? 'mine' : ''}">${escHtml(u.username)}</span>
+        ${u.mod ? '<span style="font-size:0.55rem;color:var(--accent)">MOD</span>' : ''}
+      </div>`;
+    }).join('');
+    document.getElementById('online-count').textContent = online.length + ' online';
+  }
+
+  // ── MOD POPUP ────────────────────────────────────────────────
+  function showModPopup(user, event) {
+    if (!isMod || user === username) return;
+    popupTarget = user;
+    const popup = document.getElementById('mod-popup');
+    document.getElementById('popup-uname').textContent = user;
+    popup.classList.add('open');
+    // position near click
+    const x = Math.min(event.clientX, window.innerWidth - 200);
+    const y = Math.min(event.clientY, window.innerHeight - 120);
+    popup.style.left = x + 'px';
+    popup.style.top  = y + 'px';
+    event.stopPropagation();
+  }
+
+  document.addEventListener('click', () => {
+    document.getElementById('mod-popup').classList.remove('open');
+  });
+
+  document.getElementById('popup-kick').addEventListener('click', async () => {
+    if (!popupTarget) return;
+    document.getElementById('mod-popup').classList.remove('open');
+    try {
+      const res = await fetch(API + '/chat/kick', {
+        method: 'POST', headers: headers(),
+        body: JSON.stringify({ username: popupTarget })
+      });
+      const d = await res.json();
+      if (!res.ok) toast(d.error || 'Failed', true);
+    } catch(e) { toast('Error', true); }
+  });
+
+  document.getElementById('popup-ban').addEventListener('click', () => {
+    banTarget = popupTarget;
+    document.getElementById('mod-popup').classList.remove('open');
+    document.getElementById('ban-target-name').textContent = banTarget;
+    document.getElementById('ban-modal').classList.add('open');
+  });
+
+  // ── BAN MODAL ────────────────────────────────────────────────
+  document.querySelectorAll('.dur-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (btn.dataset.min === 'custom') {
+        document.getElementById('custom-dur').style.display = 'flex';
+        banMinutes = parseInt(document.getElementById('custom-min').value) || 60;
+      } else {
+        document.getElementById('custom-dur').style.display = 'none';
+        banMinutes = parseInt(btn.dataset.min);
+      }
+    });
+  });
+
+  document.getElementById('custom-min').addEventListener('input', e => {
+    banMinutes = parseInt(e.target.value) || 60;
+  });
+
+  document.getElementById('btn-cancel-ban').addEventListener('click', () => {
+    document.getElementById('ban-modal').classList.remove('open');
+    banTarget = null;
+  });
+
+  document.getElementById('btn-do-ban').addEventListener('click', async () => {
+    if (!banTarget) return;
+    document.getElementById('ban-modal').classList.remove('open');
+    try {
+      const res = await fetch(API + '/chat/ban', {
+        method: 'POST', headers: headers(),
+        body: JSON.stringify({ username: banTarget, minutes: banMinutes })
+      });
+      const d = await res.json();
+      if (!res.ok) toast(d.error || 'Failed to ban', true);
+      else toast(`Banned ${banTarget} for ${banMinutes} min`);
+    } catch(e) { toast('Error', true); }
+    banTarget = null;
+  });
+</script>
+</body>
+</html>
